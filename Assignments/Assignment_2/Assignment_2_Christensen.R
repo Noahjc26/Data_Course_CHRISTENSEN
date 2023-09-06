@@ -1,5 +1,5 @@
 
-# Assignment 2
+#### Assignment 2 ####
 
 #root "/"
 # the current directory "."
@@ -21,7 +21,7 @@ head(df,n=5)    #head shows first 6 lines, n specifies the number of lines)
 bfiles <- list.files(path="Data",
            recursive = TRUE,
            full.names=TRUE,
-           pattern = "^b")
+           pattern = "^b") #finds all files that start with b
 
 bfiles
 
