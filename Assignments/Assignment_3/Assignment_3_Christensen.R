@@ -36,6 +36,7 @@ vector1*vector2
 vector3 + 1 # can't add 1 to "a"
 
 
+
 # Logical expressions (pay attention to these...they are used ALL THE TIME)
 vector1 > 3
 vector1 >= 3
@@ -179,20 +180,36 @@ seq(2,150,2) # here's the code to get a list of the even numbers between 2 and 1
 # 2.  Create a new object called iris_chr which is a copy of iris, except where every column is a character class
 
 iris_chr <- iris
-iris$Sepal.Length <- as.character((dat$Sepal.Length))
+iris_chr$Sepal.Length <- as.character(iris$Sepal.Length)
+iris_chr$Sepal.Width <- as.character(iris$Sepal.Length)
+iris_chr$Petal.Length <- as.character(iris$Petal.Length)
+iris_chr$Petal.Width <- as.character(iris$Petal.Width)
+iris_chr$Species <- as.character(iris$Species)
 
-for i in
+class(iris_chr$Sepal.Length)
+class(iris_chr$Sepal.Width)
+class(iris_chr$Petal.Length)
+class(iris_chr$Petal.Width)
+class(iris_chr$Species)
 
-iris_chr <- as.data.frame(as.character(iris))
+# OR
 
+iris_chr_for_loop <- iris
+for (i in 1:ncol(iris_chr_for_loop)) {
+  iris_chr_for_loop[,i] <- as.character(iris_chr_for_loop[,i])
+}
+
+for (i in iris_chr_for_loop) {
+  print(class(i))
+}
 # 3.  Create a new numeric vector object named "Sepal.Area" which is the product of Sepal.Length and Sepal.Width
 
-Sepal.Area = dat$Sepal.Width*dat$Sepal.Length
+Sepal.Area = iris$Sepal.Width*iris$Sepal.Length
 class(Sepal.Area)
 
 # 4.  Add Sepal.Area to the iris data frame as a new column
 
-iris$Sepal.Area <- dat$Sepal.Length*dat$Sepal.Width
+iris$Sepal.Area <- iris$Sepal.Length*iris$Sepal.Width
 
 # 5.  Create a new dataframe that is a subset of iris using only rows where Sepal.Area is greater than 20 
 # (name it big_area_iris)
