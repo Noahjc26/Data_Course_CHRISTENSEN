@@ -235,3 +235,63 @@ df <- data.frame (Name = c("NA", "Joseph", "Martin", NA,"Andrea"),
                   stringsAsFactors = FALSE)
 df[df=='NA'] <- NA
 df[!is.na(df$Name),]
+
+#### Loops ####
+for(i in 1:3){
+  x <- paste0("Number ",i)
+  print(x)
+}
+
+planets <- c("Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune")
+n <- 1
+newvector <- c()
+for (i in planets) {
+  newvector[n] <- paste0(i,i)
+  n=n+1
+}
+newvector
+
+#Exercise 1
+for (i in 1:7) {
+  print(i^3)
+  
+}
+
+#Exercise 2
+iris
+for (i in colnames(iris)) {
+  x <- paste0(i," (", nchar(i), ")")
+  print(x) 
+}
+
+#Exercise 3
+i <- 1
+while (i < 6) {
+  print(i)
+  i=i+1
+}
+i=0
+while (i < 1) {
+  print(i)
+  i <- rnorm(1)
+}
+
+#Exercise 4
+coin_flips <- c('heads','tails')
+for (i in 1) {
+i <- sample(coin_flips, size = 20, replace = TRUE)
+  print(i)
+}
+
+#Exercise 5
+x <- seq(1:20)
+
+n=1
+i=1
+while (i < 100000) {
+  i <- i*n
+  n=n+1
+  print(i)
+}
+
+
