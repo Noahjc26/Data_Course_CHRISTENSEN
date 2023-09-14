@@ -294,4 +294,48 @@ while (i < 100000) {
   print(i)
 }
 
+#### Cran r for packages ####
+#### PLOTS ####
+
+library(tidyverse)
+iris
+# 1. Give a data frame
+# 2. Map column names to various aspects of plot
+# 3. Give it geoms (things to draw) (geometry)
+ggplot(iris,aes(x=Petal.Length,
+                y=Petal.Width,
+                color=Species,)) +
+  geom_point(alpha=0.4,
+             size=0.5) +
+  geom_smooth(method = "lm",
+              se = FALSE) + 
+  geom_smooth (method = "lm",
+               color='black',
+               linetype=3,
+               se=FALSE,
+               alpha=.3) +
+  scale_color_viridis_d(begin=.3) +
+  theme_minimal() +
+  labs(x="Petal Length",
+       y="Petal Width",
+       color="Species of iris") +
+  facet_wrap(~Species)
+  
+#loess curve is default
+#lm is linear model "y=mx+b"
+#alpha is opacity 0 is invisible 1 is opaque.
+#linetype-2 makes it a dotted line
+#se gets rid of grey error bars when FALSE
+# ~ (tilda) means "as a function of"
+
+
+mpg
+ggplot(data=mpg,
+       aes(x=manufacturer,
+           y=hwy,
+           fill=drv)) +
+  geom_boxplot(fill='#00054322',color='#800000',alpha=.5) +
+  facet_grid(~year,scales='free') +
+  theme_bw()
+
 
