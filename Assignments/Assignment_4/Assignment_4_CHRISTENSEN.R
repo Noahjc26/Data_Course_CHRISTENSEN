@@ -1,8 +1,7 @@
 library(tidyverse)
-list.files(path="Assignments/Assignment_4")
 
-df <- read.csv("Assignments/Assignment_4/grngrass.csv")
-#path is based on Data_Course_CHRISTENSEN as directory
+df <- read.csv("grngrass.csv")
+
 
 ggplot(df,aes(x=wavelength,y=reflectance)) +
   geom_line()
