@@ -1,7 +1,8 @@
 library(tidyverse)
 
+
 #1 Read into R Data Frame
-CCD <- read.csv("./Exam_1/cleaned_covid_data.csv")
+CCD <- read.csv("./cleaned_covid_data.csv")
 
 #2 Subset into data with only states starting with A
 
@@ -44,15 +45,9 @@ state_max_fatality_rate = fatality_rate_temp3[c("Province_State","Maximum_Fatali
 
 #5
 
+ggplot(state_max_fatality_rate,
+       aes(x=reorder(Province_State, -Maximum_Fatality_Ratio),
+           y=Maximum_Fatality_Ratio)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90,hjust = 1)) 
 
-
-X-axis is Province_State
-Y-axis is Maximum_Fatality_Ratio
-bar plot
-x-axis arranged in descending order, just like the data frame (make it a factor to accomplish this)
-X-axis labels turned to 90 deg to be readable
-Even with this partial data set (not current), you should be able to see that (within these dates), different states had very different fatality ratios.
-
-VI. (BONUS 10 pts) Using the FULL data set, plot cumulative deaths for the entire US over time
-
-You’ll need to read ahead a bit and use the dplyr package functions group_by() and summarize() to accomplish this.

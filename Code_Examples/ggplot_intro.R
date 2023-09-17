@@ -3,9 +3,12 @@
 # Load ggplot2 (it is included in the tidyverse package) ####
 library(tidyverse)
 
+options(scipen = 999)
+
+
 # Load the data we will work with (built-in to ggplot)
 data("midwest", package = "ggplot2")
-
+  
 # Intro to ggplot syntax
 
 # The syntax for constructing ggplots could be puzzling if you are a beginner or work primarily with base graphics. 
@@ -38,20 +41,28 @@ ggplot(midwest, aes(x=area, y=poptotal))  # area and poptotal are columns in 'mi
 # That’s because, any information that is part of the source dataframe has to be specified inside the aes() function.
 
 # Give it a geom to map to your defined aesthetics... Basic Scatterplot, in this case:
-ggplot(midwest, aes(x=area, y=poptotal)) + geom_point() # The "+" tells ggplot to add another layer to our base plot
+ggplot(data=midwest, mapping=aes(x=area, y=poptotal)) + 
+  geom_point() # The "+" tells ggplot to add another layer to our base plot
 
 # Add another geom ... a trendline:
-ggplot(midwest, aes(x=area, y=poptotal)) + geom_point() + geom_smooth(method = "lm")
+ggplot(midwest, aes(x=area, y=poptotal)) + 
+  geom_point(aes(color=state)) + 
+  geom_smooth(method = "lm",color='red',linetype=2)
 # The line of best fit is in blue. Can you find out what other method options are available for geom_smooth? 
 
 # Store your plot as an object to add to...
 p <- ggplot(midwest, aes(x=area, y=poptotal)) + geom_point() + geom_smooth(method = "lm")
+class(p)
+p
+
+
 
 # Zoom in
-p + lims(x=c(0,0.1),y=c(0,1000000)) # what did this do?
-p + coord_cartesian(xlim=c(0,0.1), ylim=c(0, 1000000)) # how is this different?
-
+p + lims(x=c(0,0.1),y=c(0,1000000)) # what did this do? This literally deletes points outside of the new frame
+p + coord_cartesian(xlim=c(0,0.1), ylim=c(0, 1000000)) # how is this different? This is basically the zoom in feature
+p + facet_wrap(~state,scales="free")
 # Store this new zoomed-in plot
+p$scales
 p2 <- p + coord_cartesian(xlim=c(0,0.1), ylim=c(0, 1000000))
 
 # Add Title and Labels:
@@ -62,9 +73,9 @@ p2 + labs(title="Area Vs Population",
           caption="Midwest Demographics")
 
 # Nifty!  So here's the full function call to make this plot:
-ggplot(midwest, aes(x=area, y=poptotal)) + 
-  geom_point() + 
-  geom_smooth(method="lm") + 
+ggplot(midwest, aes(x=area, y=poptotal)) + #global aesthetics for the rest of the lines
+  geom_point() + #geom point has inherited the x and y aesthetics from the global points above
+  geom_smooth(method=lm) + 
   coord_cartesian(xlim=c(0,0.1), ylim=c(0, 1000000)) + 
   labs(title="Area Vs Population", subtitle="From midwest dataset", y="Population", x="Area", caption="Midwest Demographics")
 
@@ -91,6 +102,14 @@ p3
 
 # Don't like those colors?
 p3 + scale_color_brewer(palette = "Set1")
+mypallette <- c("#343356","#b23590","#a35929","#4a5090","#4000a5")
+
+p3 + scale_color_manual(values=mypallette)
+
+p3 + colorblinder::scale_color_OkabeIto()
+colorblinder::cvd_grid(p3)
+library(RColorBrewer)
+
 
 # Want more color choices? You can check them out in the RColorBrewer package, or even make your own
 library(RColorBrewer)
@@ -153,13 +172,13 @@ ggplot(MplsStops, aes(x=lat, fill = race)) + geom_density(alpha = .5) + labs(tit
 
 
 ggplot(MplsStops, aes(x=lat, fill = race)) + geom_histogram() + labs(title = "Latitude of police stops in Minneapolis - 2017") +
-  facet_wrap(~race)
+  facet_wrap(~racescales="free")
 
 
 
 # Look at lat AND lon
 ggplot(MplsStops, aes(x=lat,y=long,color=race)) + geom_point() + theme_minimal()
-
+ggsave("./ggsaveTest.png",width = 6,height = 6, dpi = 300)
 ggplot(MplsStops, aes(x=lat,y=long,color=race)) + geom_point() + theme_minimal() + facet_wrap(~race) # "overplotting!?"
 
 
