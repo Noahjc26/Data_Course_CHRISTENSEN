@@ -1,0 +1,7 @@
+2. Using ASTER/AVIRIS satellite data to determine rock lithology in areas of receding glaciers or inaccessible outcrops. 
+
+3. The data will consists of absorption features for different wavelengths and using Band math to create visualizations of the imagery and/or viewing the wavelength absorption signature. I am planning on working with Matt Olson (he recommended I take this class since I wanted to learn R for GIS related work) and potentially using hyper-spectral sensors on field samples which would give much more information than the satellite data on mineral absorption.
+
+I will get the ASTER data from UGS Earth Explorer.   
+I found hyper spectral data online just to testing r and plot.
+I also mapped the NDSI on a Landsat Image to test it out                                         
