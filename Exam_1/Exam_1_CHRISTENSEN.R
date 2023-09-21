@@ -8,6 +8,7 @@ CCD <- read.csv("./cleaned_covid_data.csv")
 
 A_states<- subset(CCD, grepl("^A",Province_State))
 
+
 #3 Plot
 class(A_states$Last_Update)
 
@@ -43,7 +44,30 @@ fatality_rate_temp3 <- fatality_rate_temp2[order(-fatality_rate_temp2$Maximum_Fa
 #creating final data frame with only the two columns "Province_State" and "Maximum_Fatality_Ratio"
 state_max_fatality_rate = fatality_rate_temp3[c("Province_State","Maximum_Fatality_Ratio")]
 
+# how Zahn did it with for loop
+#peaks <- c()
+
+#for(i in unique(df$Province_State)){
+ # x <- df[df$Province_State == i,]
+  #y <- max(x$Case_Fatality_Ratio, na.rm = TRUE)
+#  peaks[i] <- y
+#}
+
+#data.frame(State = names(peaks),
+ #          Peak = peaks)
+#easy way
+#state_max_fatality_rate <- 
+#df %>%
+ # group_by(Province_State) %>%
+  #summarize(Maximum_Fatality_Ratio = max(Case_Fatality_Ratio,na.rm=TRUE)) %>%
+  #arrange(desc(Maximum_Fatality_Ratio))
+
 #5
+
+#factors
+# state_max_fatality_rate$Province_State <- 
+ # factor(state_max_fatality_rate$Province_State,
+  #       levels = state_max_fatality_rate$Province_State)
 
 ggplot(state_max_fatality_rate,
        aes(x=reorder(Province_State, -Maximum_Fatality_Ratio),
@@ -51,3 +75,9 @@ ggplot(state_max_fatality_rate,
   geom_col() +
   theme(axis.text.x = element_text(angle = 90,hjust = 1)) 
 
+#6 maybe
+#CCD %>%
+#  group_by(Last_Update) %>%
+#  summarize(cumulative_deaths = sum(Deaths,na.rm=TRUE)) %>%
+#  ggplot(aes(x=Last_Update,y=cumulative_deaths)) +
+#  geom_smooth()

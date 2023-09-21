@@ -1,3 +1,14 @@
+library(tidyverse)
+library(ggforce)
+library(patchwork)
+library(ggpubr)
+library(gganimate)
+library(GGally)
+library(plotly)
+library(kableExtra)
+library(gganimate)
+
+#l
 #### Vector ####
 #Exercise 1
 x <- c(4,6,5,7,10,9,4,15)
@@ -338,6 +349,27 @@ ggplot(data=mpg,
   facet_grid(~year,scales='free') +
   theme_bw()
 
+ggplotly(p)
+
+head(iris) %>% 
+  kable() %>% 
+  kable_classic(lightable_options = 'hover')
 
 
+pal <- c('green')
+
+scale_color_manual(values = pal)
+
+
+
+iris %>% 
+  mutate(blink = Sepal.Width < 3.5) %>% 
+  ggplot(aes(x=Sepal.Length,y=Sepal.Width,color=Species)) +
+  geom_point() +
+gganimate::transition_states(blink,state_length = .5) +
+gganimate::enter_appear()
+anim_save("myanimation.gif")
+
+GGally::ggpairs(iris)
+facet_zoom()
 
