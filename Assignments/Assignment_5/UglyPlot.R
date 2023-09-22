@@ -1,17 +1,33 @@
 library(tidyverse)
-library(gganimate)
+library(patchwork)
 library(ggimage)
 
-p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width)) +
-  geom_col() +
-  geom_abline()
+p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,fill=Species)) +
+  geom_col(width=.1,show.legend = TRUE,position = "jitter") +
+  geom_abline(slope = -.1,intercept = 3,linewidth=6,alpha=.3) +
+  geom_area(alpha=.2) +
+  labs(x="Sepal.Length",
+       title = "S        e          p        a        l      .      l    e        n        g        t        h  ", 
+       y="Sepal.Length",
+       fill= "Sepal.Length") +
+  scale_fill_discrete(labels=c('Sepal.Length', 'Sepal.Length','Speal.Length'))
 
 p + theme(
-  aspect.ratio=.5,
-  axis.title = element_text(size = 100))
-  
-  axis.title.x = 0,
-  axis.title.x.top = 0,
+  aspect.ratio=.9,
+  axis.title = element_text(size = 11),
+  axis.title.x = element_text(hjust = 0,family = "serif",angle = 0),
+  axis.ticks = element_line(size=2,color='yellow',arrow = arrow(length=unit(1.5,"cm"))),
+  strip.text = element_text(("Sepil.Length")),
+  plot.tag = element_text(),
+  panel.background = element_rect(fill = FALSE,color = 'green',size=5,linetype = 3),
+  panel.ontop = TRUE,
+  panel.grid = element_line(linetype = 3,size=5,color="purple"),
+  plot.background = element_rect(fill='blue'),
+  legend.background = element_rect(fill = "hotpink"))
+
+
+p <-  facet_wrap(~Species)
+  axis.title.x.top  \ = 0,
   axis.title.x.bottom = 0,
   axis.title.y = 0,
   axis.title.y.left = 0,

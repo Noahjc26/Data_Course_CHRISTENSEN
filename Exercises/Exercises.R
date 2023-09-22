@@ -365,11 +365,16 @@ scale_color_manual(values = pal)
 iris %>% 
   mutate(blink = Sepal.Width < 3.5) %>% 
   ggplot(aes(x=Sepal.Length,y=Sepal.Width,color=Species)) +
-  geom_point() +
+  geom_point(data = iris %>% filter(Sepal.Length>3),size=5) +
+  geom_point(data = iris %>% filter(Sepal.Length<= 5),color="black")
+
 gganimate::transition_states(blink,state_length = .5) +
 gganimate::enter_appear()
 anim_save("myanimation.gif")
 
 GGally::ggpairs(iris)
 facet_zoom()
+
+library(patchwork)
+(p|p2)/p2
 
