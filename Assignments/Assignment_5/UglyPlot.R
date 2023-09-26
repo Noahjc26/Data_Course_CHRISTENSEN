@@ -1,146 +1,54 @@
 library(tidyverse)
-library(patchwork)
+library(cowplot)
 library(ggimage)
 
-p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,fill=Species)) +
-  geom_col(width=.1,show.legend = TRUE,position = "jitter") +
-  geom_abline(slope = -.1,intercept = 3,linewidth=6,alpha=.3) +
-  geom_area(alpha=.2) +
+plotimage <- image_read2("./ScreenShot2.png")
+p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,color=Species)) +
+  geom_col(aes(y=Sepal.Width,fill=Species),width=.1,position = "jitter") +
+  geom_abline(slope = -.5,intercept = 3,linewidth=1,alpha=.3) +
+  geom_area(alpha=.3) +
+  geom_point(show.legend = FALSE) +
   labs(x="Sepal.Length",
        title = "S        e          p        a        l      .      l    e        n        g        t        h  ", 
        y="Sepal.Length",
-       fill= "Sepal.Length") +
-  scale_fill_discrete(labels=c('Sepal.Length', 'Sepal.Length','Speal.Length'))
+       color="SEPAL",
+       fill="sepal.length")+
+  scale_fill_manual(
+    labels=c('Sepal Length', "Sepal.Length","sepal.Length"),
+    values=c("blue", "cyan4","green")) +
+  scale_color_manual(
+    labels=c('Sepal.Length', 'Sepal.Length','Speal.Length'),
+    values = c("purple", "purple2", "purple3")) +
+  annotate("segment", x = -5, xend = 4, y = 14, yend = 5, colour = "red", size=2, arrow=arrow()) +
+  annotate("segment", x = 4, xend = 5, y = 12, yend = 8, colour = "red", size=2, arrow=arrow()) +
+  annotate("segment", x = 10, xend = 8, y = 10, yend = 6, colour = "red", size=2, arrow=arrow()) +
+  annotate("segment", x = 5, xend = 6, y = 15, yend = 7, colour = "red", size=2, arrow=arrow()) +
+  geom_point( size=50,shape=1, color="red2") +
+  draw_image(plotimage,scale = 6,vjust = -3,hjust = 2) +
+   annotate("text", x = 2, y = 10, 
+            label = "Doctors HATE when you 
+            know this one graphing trick 😱
+            
+            What plots next will SHOCK you!!!
+            " , color="red", 
+          size=10 , angle=2, fontface="bold")
 
 p + theme(
-  aspect.ratio=.9,
+  aspect.ratio=1.1,
   axis.title = element_text(size = 11),
-  axis.title.x = element_text(hjust = 0,family = "serif",angle = 0),
-  axis.ticks = element_line(size=2,color='yellow',arrow = arrow(length=unit(1.5,"cm"))),
+  axis.title.x = element_text(hjust = 1,family = "serif",angle = 0,size=20,color = "gold1",vjust=1),
   strip.text = element_text(("Sepil.Length")),
   plot.tag = element_text(),
-  panel.background = element_rect(fill = FALSE,color = 'green',size=5,linetype = 3),
-  panel.ontop = TRUE,
-  panel.grid = element_line(linetype = 3,size=5,color="purple"),
-  plot.background = element_rect(fill='blue'),
-  legend.background = element_rect(fill = "hotpink"))
-
-
-p <-  facet_wrap(~Species)
-  axis.title.x.top  \ = 0,
-  axis.title.x.bottom = 0,
-  axis.title.y = 0,
-  axis.title.y.left = 0,
-  axis.title.y.right = 0,
-  axis.text = 15,
-  axis.text.x = 0,
-  axis.text.x.top = 0,
-  axis.text.x.bottom = 0,
-  axis.text.y = 0,
-  axis.text.y.left = 0,
-  axis.text.y.right = 0,
-  axis.ticks = 20,
-  axis.ticks.x = 0,
-  axis.ticks.x.top = 0,
-  axis.ticks.x.bottom = 0,
-  axis.ticks.y = 0,
-  axis.ticks.y.left = 0,
-  axis.ticks.y.right = 0,
-  axis.ticks.length = 0,
-  axis.ticks.length.x = 0,
-  axis.ticks.length.x.top = 0,
-  axis.ticks.length.x.bottom = 0,
-  axis.ticks.length.y = 0,
-  axis.ticks.length.y.left = 0,
-  axis.ticks.length.y.right = 0,
-  axis.line = 0,
-  axis.line.x = 0,
-  axis.line.x.top = 0,
-  axis.line.x.bottom = 0,
-  axis.line.y = 0,
-  axis.line.y.left = 0,
-  axis.line.y.right = 0,
-  legend.background = 0,
-  legend.margin = 0,
-  legend.spacing = 0,
-  legend.spacing.x = 0,
-  legend.spacing.y = 0,
-  legend.key = 0,
-  legend.key.size = 0,
-  legend.key.height = 0,
-  legend.key.width = 0,
-  legend.text = 0,
-  legend.text.align = 0,
-  legend.title = element_text(color='green'),
-  legend.title.align = 0,
-  legend.position = 0,
-  legend.direction = 0,
-  legend.justification = 0,
-  legend.box = 0,
-  legend.box.just = 0,
-  legend.box.margin = 0,
-  legend.box.background = 0,
-  legend.box.spacing = 0,
-  panel.background = 0,
-  panel.border = 0,
-  panel.spacing = 0,
-  panel.spacing.x = 0,
-  panel.spacing.y = 0,
-  panel.grid = 0,
-  panel.grid.major = 0,
-  panel.grid.minor = 0,
-  panel.grid.major.x = 0,
-  panel.grid.major.y = 0,
-  panel.grid.minor.x = 0,
-  panel.grid.minor.y = 0,
-  panel.ontop = 0,
-  plot.background = 0,
-  plot.title = 0,
-  plot.title.position = 0,
-  plot.subtitle = 0,
-  plot.caption = 0,
-  plot.caption.position = 0,
-  plot.tag = 0,
-  plot.tag.position = 0,
-  plot.margin = 0,
-  strip.background = 0,
-  strip.background.x = 0,
-  strip.background.y = 0,
-  strip.clip = 0,
-  strip.placement = 0,
-  strip.text = 0,
-  strip.text.x = 0,
-  strip.text.x.bottom = 0,
-  strip.text.x.top = 0,
-  strip.text.y = 0,
-  strip.text.y.left = 0,
-  strip.text.y.right = 0,
-  strip.switch.pad.grid = 0,
-  strip.switch.pad.wrap = 0,
-  complete = FALSE,
-  validate = TRUE
-)
-
-p
+  panel.background = element_rect(fill = FALSE,color = 'yellow',linetype = 0),
+  panel.ontop = FALSE,
+  panel.grid = element_blank(),
+  plot.background = element_rect(fill='gold4'),
+  legend.background = element_rect(fill = "brown4",color="red3",linewidth = 5),
+  legend.text = element_text(family = "Helvetica",vjust = 1,size=50,color="red4"),
+  axis.text.x = element_text(vjust = 10,size = 1),
+  axis.text.y = element_text(hjust=5,size=25,color='white'),
+  axis.title.y = element_text(size=6,vjust=-200))
 
 
 
-pp <- p + theme(aspect.ratio = 2,
-         axis.title.x = element_text(face = 'bold',
-                                    color='hotpink',
-                                    size=16,
-                                    hjust = 0,
-                                    vjust = -50,
-                                    angle = 180,),
-        legend.background = element_rect(fill='green'),
-        legend.title = element_text(color='pink',
-                                    angle=90,
-                                    size = 120,
-                                    face='italic'
-                                    ),
-        strip.text = element_text(color='yellow'),
-        panel.grid = element_line(size=.1,
-                                  color='black'),
-        panel.background = element_rect(fill = 'yellow'),
-        plot.background = element_rect(fill='black'))
-pp
+
