@@ -31,7 +31,7 @@ p <- ggplot(iris,aes(x=Sepal.Length,y=Sepal.Width,color=Species)) +
             
             What plots next will SHOCK you!!!
             " , color="red", 
-          size=10 , angle=2, fontface="bold")
+          size=5 , angle=2, fontface="bold")
 
 p + theme(
   aspect.ratio=1.1,
@@ -51,4 +51,4 @@ p + theme(
 
 
 
-
+ggsave("Beautifulplot.png")

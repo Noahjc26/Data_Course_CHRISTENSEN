@@ -7,6 +7,9 @@ library(GGally)
 library(plotly)
 library(kableExtra)
 library(gganimate)
+library(readxl)
+library(janitor)
+library(lubridate)
 
 #l
 #### Vector ####
@@ -378,3 +381,101 @@ facet_zoom()
 library(patchwork)
 (p|p2)/p2
 
+
+#### Tidy Data ####
+
+# 3 rules -->
+# Rule 1: Every variable gets its own column
+# Rule 2: Every observation gets its own row
+# Rule 3: Recantgular data
+
+library(tidyverse)
+table1 %>% 
+  ggplot(aes(x=year,y=cases,color=country)) +
+  geom_path()
+
+table2
+table2 %>% 
+  pivot_wider(names_from = type,values_from = count)
+
+
+table3  
+table3 %>% 
+  separate(rate,into = c("cases","population"),sep="/")
+
+table4a
+table4a %>% 
+  pivot_longer(cols = c("1999","2000"),names_to = "year")
+
+tidytable4a <- table4a %>% 
+  pivot_longer(cols = -country,names_to = "year",values_to = "cases")
+  
+tidytable4a
+tidytable4b<- table4b %>%
+  pivot_longer(cols = -country,names_to = "year",values_to = "population")
+
+full_join(tidytable4a,tidytable4b)
+
+#or
+
+full_join(
+table4a %>% 
+    pivot_longer(cols = -country,names_to = "year",values_to = "cases"),
+table4b %>%
+    pivot_longer(cols = -country,names_to = "year",values_to = "population")
+)
+
+table5
+table5 %>% 
+  mutate(date=paste0(century,year) %>% 
+  as.numeric()) %>% 
+  select(-century,-year) %>% 
+  separate(rate,into = c("cases","population"),convert = TRUE)
+
+
+#Popquiz test sewage data
+#Cleaning excel data
+
+#for the dates being in excel sep-1 2 and 3 
+df1
+dates <- janitor::excel_numeric_to_date(as.numeric(df1$site[1:3]))
+class(dates)
+#pull the month name abbreviation into character
+part1 <- lubridate::month(dates,label = TRUE,abbr = TRUE) %>% 
+  str_to_upper()
+#pull the site numbers from day of month
+part2 <- lubridate::day(dates)
+#paste them together
+paste(part1,part2,sep = "-")
+#add them back to dataframe
+df1$site[1:3] <- finalproduct
+
+
+
+#read in data from excel
+df <- read_xlsx("./Exercises/organized dataset.xlsx")
+
+names(df)
+df <- clean_names(df) #Cleans names of columns
+
+#getting rid of the space between sewage and pool
+df$site <- 
+df$site %>% 
+  str_replace(" Pool","Pool")
+
+df <- 
+df %>% 
+  pivot_longer(cols = starts_with("week"),
+               names_to = "week",
+               values_to = "amount",
+               names_prefix = "week_", #getting rid of "week_" in observation
+               names_transform = as.numeric) %>% 
+  separate(col = "site",into = c("location","site"),sep = " ") #creating new column by separating location and site number
+
+#changing names of sewage pool to SEP and hatchery to HAT
+df %>% 
+  mutate(location = case_when(location == "SewagePool" ~ "SEP",
+                         location == "Hatchery" ~ "HAT"))
+
+
+         
