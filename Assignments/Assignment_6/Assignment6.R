@@ -2,23 +2,22 @@ library(tidyverse)
 library(janitor)
 library(gganimate)
 df <- read.csv("../../Data/BioLog_Plate_Data.csv")
-head(df)
 
 clean_names(df)
 #turn hours into variable
 cleaneddf <- df %>% 
-  pivot_longer(cols = c(starts_with("Hr_")),
+  pivot_longer(cols = c(starts_with("Hr_")), #separating hours into respective colummns
                names_to = "Time",
                names_prefix = "Hr_",
                names_transform = as.numeric,
                values_to = "Absorbance") %>% 
-  mutate(Type = Sample.ID,
-         Type = case_when(Type == "Clear_Creek" ~ "Water",
+  mutate(Type = Sample.ID, #duplicating sample.id column
+         Type = case_when(Type == "Clear_Creek" ~ "Water", #changing names in duplicated sample.id column 
                               Type == "Waste_Water" ~ "Water",
                               Type == "Soil_1" ~ "Soil",
                               Type == "Soil_2" ~ "Soil"))
 
-subdf <- filter(cleaneddf,cleaneddf$Dilution == "0.1")
+subdf <- filter(cleaneddf,cleaneddf$Dilution == "0.1") #getting rid of all dilutino except 0.1
 
 subdf %>% 
 ggplot(aes(x=Time,y=Absorbance,color=Type)) +
@@ -28,11 +27,11 @@ ggplot(aes(x=Time,y=Absorbance,color=Type)) +
   theme_minimal()
 
 
-subdf2 <- filter(cleaneddf,cleaneddf$Substrate == "Itaconic Acid")
+subdf2 <- filter(cleaneddf,cleaneddf$Substrate == "Itaconic Acid") #getting rid of all substrates but Itaconic Acid
 
-subdf3 <- subdf2 %>% group_by(Time,Sample.ID,Dilution) %>% 
-  mutate(Absorbance_mean = mean(Absorbance)) %>% 
-  distinct(Absorbance_mean,Time)
+subdf3 <- subdf2 %>% group_by(Time,Sample.ID,Dilution) %>% #grouping to turn repeated samples into a mean
+  mutate(Absorbance_mean = mean(Absorbance)) %>% #turning the group absorbance into mean absorbance
+  distinct(Absorbance_mean,Time) #reducing rows to only those with distinct values
 
 subdf3 %>% 
   ggplot(aes(x=Time,y=Absorbance_mean,color=Sample.ID)) +
