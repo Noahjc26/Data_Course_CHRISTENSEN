@@ -17,7 +17,7 @@ cleaneddf <- df %>%
                               Type == "Soil_1" ~ "Soil",
                               Type == "Soil_2" ~ "Soil"))
 
-subdf <- filter(cleaneddf,cleaneddf$Dilution == "0.1") #getting rid of all dilutino except 0.1
+subdf <- filter(cleaneddf,cleaneddf$Dilution == "0.1") #getting rid of all dilution except 0.1
 
 subdf %>% 
 ggplot(aes(x=Time,y=Absorbance,color=Type)) +
