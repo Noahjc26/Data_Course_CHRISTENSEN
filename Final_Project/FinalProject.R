@@ -1,6 +1,4 @@
-library(BiocManager)
 library(raster)
-library(rgdal)
 library(hyperSpec)
 library(devtools)
 library(terra)
@@ -9,8 +7,10 @@ library(gdalUtilities)
 library(janitor)
 library(dplyr)
 library(zoom)
-library(dplyr)
 library(unix)
+library(rgdal)
+library(janitor)
+library(tmap)
 
 #---------------------------------------------------------------------------------------------------
 #reading in csv of hyperion band information
@@ -25,13 +25,13 @@ Hyperion_Bands$Wavelength <- gsub("FWHM:","",Hyperion_Bands$Wavelength)
 #Separating Wavelength and FWHM into their own columns
 Hyperion_Bands <- Hyperion_Bands %>% 
   as.data.frame() %>% 
-  separate(Wavelength,into = c("Wavelength_nm","FWHM_nm"),sep=",") %>% 
-  separate(Description,into = c("Description", "Temp", "Temp2"),sep=" ") 
+  separate(Wavelength,into = c("Wavelength_nm","FWHM_nm"),sep=",",convert = TRUE) %>% 
+  separate(Description,into = c("Description", "Temp", "Temp2"),sep=" ") %>% 
+  rename("Bands" = "Band_Name")
 #separating VNIR and SWIR from band names
 
 #removing temp columns
 Hyperion_Bands <- subset(Hyperion_Bands, select = -c(Temp, Temp2))
-
 
 #---------------------------------------------------------------------------------------------------
 #reading in metadata
@@ -43,33 +43,94 @@ md <- read_lines("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105
 
 
 #---------------------------------------------------------------------------------------------------
-#reading in bands to f
-f <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/",
+#reading in bands to r
+l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/",
                 pattern='TIF$',
                 full.names=TRUE)
 
-#rasterizing all files in f
-r <- lapply(f, raster)
+e <- as(extent(325000, 330000, 4100000, 4150000), 'SpatialPolygons') #setting extent
+x <- rast(l)
+x<- crop(x,e)
+xd<- as.data.frame(x,xy=TRUE,cells=TRUE)
+
 
 #cropping imagery
-e <- as(extent(310000, 320000, 4150000, 4200000), 'SpatialPolygons') #setting extent
-rr <- lapply(r, crop, e) #cropping all files in list by extent e
+rast()
+ll <- rast(l)
+p <- terra::as.points(l)
+xx <- terra::extract(p)
+head(p)
+a_df <- as.data.frame(r, na.rm = TRUE,cells=TRUE) 
 
-#stacking all rasters
-df <- stack(rr)
+x = as.data.frame(rasterToPoints(ll,spatial = TRUE))
 
-#converting stack to table with x y and DN
-df_all <- rasterToPoints(df)
-df_all_fr <- as.data.frame(df_all)
+cellFromRowCol(l)
+xyFromCell(l)
+extract(l,xy)
+r <- l %>% 
+  stack() %>% 
+  rasterToPoints()
 
-df_all_fr %>%
-  rename(Easting = x,
-         Northing = y)
+
+x <- l %>% 
+stack()
+xx  <- crop(x, e)
+xxx<- rasterToPoints(xx)
+
+#takes forever :(
+r <- l %>% 
+  lapply(raster) %>%  #rasterizing all files
+  lapply(crop, e) %>% #cropping all files in list by extent e
+  stack() %>% #stacking all rasters
+  rasterToPoints() %>% #converting stack to table with x y and DN
+  as.data.frame()
+
+r <- xd
+
+brick
+colnames(r)<- r %>% 
+  gsub(pattern = "^[^_]*_([^_]*).*",
+       replacement = "\\1", x=names(r))#getting rid of everything before the first underscore and after the second one
+
+names(r)[1] <- "Easting" 
+names(r)[2] <- "Northing"
+
+r <- r %>% 
+pivot_longer(cols = starts_with("B"), #moving all bands into one column
+             names_to = "Bands",
+             values_to = "DN")
+
+#---------------------------------------------------------------------------------------------------
+#combining band information with raster information
+r <- full_join(r,Hyperion_Bands) #combing dataframes
+r <- na.omit(r) # removing all rows with NA
+
+#---------------------------------------------------------------------------------------------------
+#plotting
+print(lapply(r,class))
+
+r <- clean_names(r)
+
+subr = r %>% 
+  filter(northing > '4145010' & northing < '4145025'
+         & easting < '325176.9' & easting > '325176.7')
+
+
+subr %>% 
+  ggplot(aes(x=wavelength_nm,y=dn)) +
+  geom_line()
+
+
+
+rrr %>% 
+ggplot() +
+  geom_raster(aes(x = Easting, y = Northing, fill = B016)) +
+  theme_classic()
 
 #---------------------------------------------------------------------------------------------------
 #testing with one TIF
 B016 <- rast("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105110KF_B016_L1T.TIF")
-
+plot(B016)
 #cropping imagery
 e <- as(extent(310000, 320000, 4150000, 4200000), 'SpatialPolygons')
 B016 <- crop(B016, e)
@@ -102,7 +163,6 @@ total <- merge(B016a,Hyperion_Bands,by="Band_Name")
 #plotting
 ggplot() +
   geom_raster(data=B016r,aes(x = Easting, y = Northing, fill = Radiance)) +
-  scale_color_viridis() +
   theme_classic()
 
 
@@ -119,7 +179,7 @@ croppedUGS <- crop(UGS, e)
 plot(croppedUGS)
 df <- as.data.frame(croppedUGS,xy=TRUE,na.rm=TRUE)
 
-
+saveRDS()
 #---------------------------------------------------------------------------------------------------
 #using tmap converting rast from terra to raster
 library(tmap)
