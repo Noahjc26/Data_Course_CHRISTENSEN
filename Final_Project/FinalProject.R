@@ -33,6 +33,7 @@ Hyperion_Bands <- Hyperion_Bands %>%
 #removing temp columns
 Hyperion_Bands <- subset(Hyperion_Bands, select = -c(Temp, Temp2))
 
+
 #---------------------------------------------------------------------------------------------------
 #reading in metadata
 md <- read_lines("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105110KF_MTL_L1T.TXT")
@@ -49,19 +50,19 @@ l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/",
                 full.names=TRUE)
 
 e <- as(extent(325000, 330000, 4100000, 4150000), 'SpatialPolygons') #setting extent
-x <- rast(l)
+x <- raster(l)
 x<- crop(x,e)
 xd<- as.data.frame(x,xy=TRUE,cells=TRUE)
 
 
-#cropping imagery
-rast()
-ll <- rast(l)
-p <- terra::as.points(l)
-xx <- terra::extract(p)
-head(p)
-a_df <- as.data.frame(r, na.rm = TRUE,cells=TRUE) 
 
+#function
+bruh <- as.data.table.SpatRaster(x)
+
+
+
+
+#cropping imagery
 x = as.data.frame(rasterToPoints(ll,spatial = TRUE))
 
 cellFromRowCol(l)
@@ -70,7 +71,6 @@ extract(l,xy)
 r <- l %>% 
   stack() %>% 
   rasterToPoints()
-
 
 x <- l %>% 
 stack()
@@ -82,8 +82,16 @@ r <- l %>%
   lapply(raster) %>%  #rasterizing all files
   lapply(crop, e) %>% #cropping all files in list by extent e
   stack() %>% #stacking all rasters
-  rasterToPoints() %>% #converting stack to table with x y and DN
+  rasterToPoints()  #converting stack to table with x y and DN
   as.data.frame()
+
+  r <- l %>% 
+    lapply(raster) %>%  #rasterizing all files
+    stack() %>% #stacking all rasters
+    as.data.table.raster()
+     
+
+    
 
 r <- xd
 
@@ -115,11 +123,9 @@ subr = r %>%
   filter(northing > '4145010' & northing < '4145025'
          & easting < '325176.9' & easting > '325176.7')
 
-
 subr %>% 
   ggplot(aes(x=wavelength_nm,y=dn)) +
   geom_line()
-
 
 
 rrr %>% 

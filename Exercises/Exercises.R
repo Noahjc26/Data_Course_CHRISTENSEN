@@ -10,6 +10,7 @@ library(gganimate)
 library(readxl)
 library(janitor)
 library(lubridate)
+library(skimr)
 
 #l
 #### Vector ####
@@ -476,6 +477,123 @@ df %>%
 df %>% 
   mutate(location = case_when(location == "SewagePool" ~ "SEP",
                          location == "Hatchery" ~ "HAT"))
+
+####More Tidy Data---------------------
+
+#assignment 6 done in class
+df <- read_csv("../Data/BioLog_Plate_Data.csv") %>% 
+  clean_names() %>% 
+  pivot_longer(starts_with("hr_"),names_to = "hour",values_to = "absorbance",
+               names_prefix = "hr_",names_transform = as.numeric) %>% 
+  mutate(type = case_when(sample_id == "Soil_1" ~ "Soil",
+    sample_id == "Soil_2" ~ "Soil",
+    sample_id == "Clear_Creek" ~ "Water",
+    sample_id == "Waste_Water" ~ "Water",))
+
+#plot 1
+df %>% 
+  filter(dilution == 0.1) %>% 
+  ggplot(aes(x=hour,y=absorbance,color=type)) +
+  geom_smooth(se=FALSE) +
+  facet_wrap(~substrate)
+
+#plot 2
+df %>%
+  filter(substrate == "Itaconic Acid") %>% 
+  group_by(dilution,sample_id,hour) %>% 
+  summarize(mean_abs = mean(absorbance)) %>% 
+  ggplot(aes(x=hour,y=mean_abs,color=sample_id)) +
+  geom_path() +
+  facet_wrap(~dilution) +
+  theme_minimal() +
+  transition_reveal(hour)
+
+skim(df)
+
+#Class activity
+
+clean_the_bird_data<- function(x){
+  library(tidyverse)
+  library(janitor)
+  library(skimr)
+df <- read.csv(x)
+ 
+df <-  clean_names(df)
+
+skim(df)
+
+#separating into different dataframes 
+mass <- df %>% 
+  select(-ends_with("_n")) %>% 
+  select(-ends_with(c("_wing","_tail","_tarsus","_bill")))
+
+wing <- df %>% 
+  select(-ends_with("_n")) %>% 
+  select(-ends_with(c("_tail","_tarsus","_bill",
+                      "m_mass","f_mass","unsexed_mass")))
+
+tail <- df %>% 
+  select(-ends_with("_n")) %>% 
+  select(-ends_with(c("_wing","_tarsus","_bill",
+                      "m_mass","f_mass","unsexed_mass")))
+
+tarsus <- df %>% 
+  select(-ends_with("_n")) %>% 
+  select(-ends_with(c("_tail","_wing","_bill",
+                      "m_mass","f_mass","unsexed_mass")))
+
+bill <- df %>% 
+  select(-ends_with("_n")) %>% 
+  select(-ends_with(c("_tail","_wing","_tarsus",
+                      "m_mass","f_mass","unsexed_mass")))
+
+mass <- 
+mass %>% 
+  pivot_longer(cols = c("m_mass","f_mass","unsexed_mass"),
+               names_to = "sex",
+               values_to = "mass") %>% 
+  mutate(sex = sex %>% str_remove("_mass"))
+
+
+wing <- 
+  wing %>% 
+  pivot_longer(cols = c("m_wing","f_wing","unsexed_wing"),
+               names_to = "sex",
+               values_to = "mass") %>% 
+  mutate(sex = sex %>% str_remove("_wing"))
+
+tail <- 
+  tail %>% 
+  pivot_longer(cols = c("m_tail","f_tail","unsexed_tail"),
+               names_to = "sex",
+               values_to = "mass") %>% 
+  mutate(sex = sex %>% str_remove("_tail"))
+
+tarsus <- 
+  tarsus %>% 
+  pivot_longer(cols = c("m_tarsus","f_tarsus","unsexed_tarsus"),
+               names_to = "sex",
+               values_to = "mass") %>% 
+  mutate(sex = sex %>% str_remove("_tarsus"))
+
+bill <- 
+  bill %>% 
+  pivot_longer(cols = c("m_bill","f_bill","unsexed_bill"),
+               names_to = "sex",
+               values_to = "mass") %>% 
+  mutate(sex = sex %>% str_remove("_bill"))
+
+clean <- bill %>% 
+  full_join(mass) %>% 
+  full_join(tail) %>% 
+  full_join(tarsus) %>% 
+  full_join(wing)
+
+return(clean)
+}
+saveRDS(clean,"../Data/cleaned_bird_data.rds")
+
+
 
 
          
