@@ -11,6 +11,8 @@ library(unix)
 library(rgdal)
 library(janitor)
 library(tmap)
+library(plotly)
+library(cowplot)
 
 #---------------------------------------------------------------------------------------------------
 #reading in csv of hyperion band information
@@ -42,96 +44,93 @@ md <- read_lines("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105
 #[300] sun elevation
 #NIR (1 to 70) /40 and SWIR (71 to 242) /80
 
-
 #---------------------------------------------------------------------------------------------------
 #reading in bands to r
 l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/",
                 pattern='TIF$',
                 full.names=TRUE)
 
-e <- as(extent(325000, 330000, 4100000, 4150000), 'SpatialPolygons') #setting extent
-x <- raster(l)
-x<- crop(x,e)
-xd<- as.data.frame(x,xy=TRUE,cells=TRUE)
+subl <- l[c(8:57,77:224)] #removing non working bands
 
+e <- as(extent(327500, 332500, 4150000, 4155000), 'SpatialPolygons') #setting extent
+x <- rast(subl) #creating raster from list
+x<- crop(x,e) #cropping by extent
+df<- as.data.frame(x,xy=TRUE,cells=TRUE,na.rm=TRUE) #creating dataframe
+  
+r <- df
 
-
-#function
-bruh <- as.data.table.SpatRaster(x)
-
-
-
-
-#cropping imagery
-x = as.data.frame(rasterToPoints(ll,spatial = TRUE))
-
-cellFromRowCol(l)
-xyFromCell(l)
-extract(l,xy)
-r <- l %>% 
-  stack() %>% 
-  rasterToPoints()
-
-x <- l %>% 
-stack()
-xx  <- crop(x, e)
-xxx<- rasterToPoints(xx)
-
-#takes forever :(
-r <- l %>% 
-  lapply(raster) %>%  #rasterizing all files
-  lapply(crop, e) %>% #cropping all files in list by extent e
-  stack() %>% #stacking all rasters
-  rasterToPoints()  #converting stack to table with x y and DN
-  as.data.frame()
-
-  r <- l %>% 
-    lapply(raster) %>%  #rasterizing all files
-    stack() %>% #stacking all rasters
-    as.data.table.raster()
-     
-
-    
-
-r <- xd
-
-brick
 colnames(r)<- r %>% 
   gsub(pattern = "^[^_]*_([^_]*).*",
        replacement = "\\1", x=names(r))#getting rid of everything before the first underscore and after the second one
 
-names(r)[1] <- "Easting" 
-names(r)[2] <- "Northing"
-
 r <- r %>% 
 pivot_longer(cols = starts_with("B"), #moving all bands into one column
              names_to = "Bands",
-             values_to = "DN")
+             values_to = "DN") %>% 
+  rename(easting = x,northing = y)
+
+
+
+
+#try this but first make list of TIF files as dataframes individually
+df <- subl %>% 
+  lapply(raster) %>% 
+  lapply(rasterToPoints)
+
+
+dat <- map(files,function)
+
+dfreduce <- reduce(df,cross_join)
 
 #---------------------------------------------------------------------------------------------------
+#one that works but takes longer
+# :(
+# r <- l %>% 
+#   lapply(raster) %>%  #rasterizing all files
+#   lapply(crop, e) %>% #cropping all files in list by extent e
+#   stack() %>% #stacking all rasters
+#   rasterToPoints()  #converting stack to table with x y and DN
+# as.data.frame()
+#---------------------------------------------------------------------------------------------------
+
 #combining band information with raster information
 r <- full_join(r,Hyperion_Bands) #combing dataframes
 r <- na.omit(r) # removing all rows with NA
-
+r <- clean_names(r) #cleaning names
 #---------------------------------------------------------------------------------------------------
 #plotting
-print(lapply(r,class))
-
-r <- clean_names(r)
-
+#plotting by cell#
 subr = r %>% 
-  filter(northing > '4145010' & northing < '4145025'
-         & easting < '325176.9' & easting > '325176.7')
+  filter(cell == 12447)
+subr3 = r %>% 
+  filter(cell == 12439)
 
-subr %>% 
+#1-27722 amount of cells
+
+p <- subr %>% 
   ggplot(aes(x=wavelength_nm,y=dn)) +
   geom_line()
 
+p2 <- subr3 %>% 
+  ggplot(aes(x=wavelength_nm,y=dn)) +
+  geom_line()
 
-rrr %>% 
-ggplot() +
-  geom_raster(aes(x = Easting, y = Northing, fill = B016)) +
+plot_grid(p, p2, labels = "AUTO")
+
+
+#plotting by band#
+subr2 <- r %>% 
+  filter(bands == "B025")
+
+map <- subr2 %>% 
+  ggplot() +
+  geom_tile(aes(x = easting, y = northing, fill = dn, text = cell)) +
   theme_classic()
+ggplotly(map, tooltip = c("cell","easting","northing"))
+
+
+
+
 
 #---------------------------------------------------------------------------------------------------
 #testing with one TIF
@@ -187,10 +186,3 @@ df <- as.data.frame(croppedUGS,xy=TRUE,na.rm=TRUE)
 
 saveRDS()
 #---------------------------------------------------------------------------------------------------
-#using tmap converting rast from terra to raster
-library(tmap)
-
-r_raster <- raster::raster(UGSa)
-
-tm_shape(r_raster) +
-  tm_raster()

@@ -50,7 +50,7 @@ full %>%
   ggplot(aes(x=total_pop_2010,y=percentage,fill=religion)) +
   geom_area() +
   labs(y= "percentage of population", x = "population of county") +
-  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(angle = 90,hjust = 1)) +
   theme_minimal()
 #Looking at the graph above it seems like there is no strong correlation between population 
 #of a county and any specific religious group. 
@@ -63,8 +63,11 @@ full %>%
   ggplot(aes(x=religion,y=percentage,fill=religion)) +
   geom_col() +
   labs(y= "population", x = "county") +
-  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(angle = 90,hjust = 1)) +
   facet_wrap(~county)
 
 #it definitely seems like when there are more LDS then there are less non-religious (except in summit county)
 #however, since this is a percentage comparison, a higher amount in one will ultimately mean a lower amount in the other categories.
+
+
+
