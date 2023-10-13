@@ -1,175 +1,112 @@
 library(raster)
-library(hyperSpec)
-library(devtools)
+# library(hyperSpec)
+# library(devtools)
 library(terra)
 library(tidyverse)
-library(gdalUtilities)
+# library(gdalUtilities)
 library(janitor)
-library(dplyr)
-library(zoom)
-library(unix)
-library(rgdal)
-library(janitor)
-library(tmap)
+# library(rgdal)
 library(plotly)
 library(cowplot)
+library(prismatic)
+library(stringr)
 
-#---------------------------------------------------------------------------------------------------
-#reading in csv of hyperion band information
-Hyperion_Bands <- read.csv("Hyperion_Bands_Wavelengths.csv")
 
-#removing nm in wavelength column
-Hyperion_Bands$Wavelength <- gsub("nm","",Hyperion_Bands$Wavelength)
+#[1] reading in csv of hyperion band information
+#[2] removing nm in wavelength column
+#[3] removing FWHM: in wavelength column
+#[4] separating Wavelength and FWHM into their own columns
+#[5] separating VNIR and SWIR from band names
+#[6] removing temp columns 
+#[7] reading in metadata
+#[8] reading in bands
 
-#removing FWHM: in wavelength column
-Hyperion_Bands$Wavelength <- gsub("FWHM:","",Hyperion_Bands$Wavelength) 
+Hyperion_Bands <- read.csv("Hyperion_Bands_Wavelengths.csv") %>%  #[1]
+  select(-c(X,X.1,X.2,X.3)) #removing random extra columns
+Hyperion_Bands <- Hyperion_Bands[-(199:235),] #removing random extra rows
 
-#Separating Wavelength and FWHM into their own columns
+Hyperion_Bands$Wavelength <- gsub("nm","",Hyperion_Bands$Wavelength)    #[2]
+Hyperion_Bands$Wavelength <- gsub("FWHM:","",Hyperion_Bands$Wavelength) #[3]
+
 Hyperion_Bands <- Hyperion_Bands %>% 
   as.data.frame() %>% 
-  separate(Wavelength,into = c("Wavelength_nm","FWHM_nm"),sep=",",convert = TRUE) %>% 
-  separate(Description,into = c("Description", "Temp", "Temp2"),sep=" ") %>% 
+  separate(Wavelength,into = c("Wavelength_nm","FWHM_nm"),sep=",",convert = TRUE) %>% #[4]
+  separate(Description,into = c("Description", "Temp", "Temp2"),sep=" ") %>%          #[5]
   rename("Bands" = "Band_Name")
-#separating VNIR and SWIR from band names
 
-#removing temp columns
-Hyperion_Bands <- subset(Hyperion_Bands, select = -c(Temp, Temp2))
+Hyperion_Bands <- subset(Hyperion_Bands, select = -c(Temp, Temp2)) #[6]
 
 
-#---------------------------------------------------------------------------------------------------
-#reading in metadata
-md <- read_lines("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105110KF_MTL_L1T.TXT")
-#[298] Sensor look angle
-#[299] sun azimuth
-#[300] sun elevation
-#NIR (1 to 70) /40 and SWIR (71 to 242) /80
+md <- read_lines("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105110KF_MTL_L1T.TXT") #[7]
 
-#---------------------------------------------------------------------------------------------------
-#reading in bands to r
-l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/",
+#setting up variables for reflectance equation
+julian_day <- as.numeric(word(md[18], 8))
+d <- (1-0.01672*cos(0.9865*(julian_day-4)))#earth sun distance in astronomical distance
+sun_elevation <- as.numeric(word(md[300],7))
+s <- (90-sun_elevation) #solar zenith angle indegrees
+
+
+l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/", #[8]
                 pattern='TIF$',
                 full.names=TRUE)
 
-subl <- l[c(8:57,77:224)] #removing non working bands
-
 e <- as(extent(327500, 332500, 4150000, 4155000), 'SpatialPolygons') #setting extent
-x <- rast(subl) #creating raster from list
-x<- crop(x,e) #cropping by extent
-df<- as.data.frame(x,xy=TRUE,cells=TRUE,na.rm=TRUE) #creating dataframe
-  
-r <- df
 
-colnames(r)<- r %>% 
+df <- l[c(8:57,79,83:119,133:164,183:184,188:220)] %>% #removing non working bands
+  rast() %>%  #creating raster from list
+  crop(e) %>% #cropping by extent
+  as.data.frame(xy=TRUE,cells=TRUE,na.rm=TRUE) #creating dataframe
+
+colnames(df) <- df %>% 
   gsub(pattern = "^[^_]*_([^_]*).*",
-       replacement = "\\1", x=names(r))#getting rid of everything before the first underscore and after the second one
+       replacement = "\\1", x=names(df)) #getting rid of everything before the first underscore and after the second one
 
-r <- r %>% 
+df <- df %>%   
 pivot_longer(cols = starts_with("B"), #moving all bands into one column
              names_to = "Bands",
-             values_to = "DN") %>% 
+             values_to = "DN") %>%
   rename(easting = x,northing = y)
 
+df <- full_join(df,Hyperion_Bands) %>% 
+  na.omit(df) %>%  # removing all rows with NA
+  clean_names() #cleaning names
 
+#calculating radiance
+df <- df %>%
+  mutate(radiance = case_when(description == "VNIR" ~ dn / 40,
+                           description == "SWIR" ~ dn / 80))
 
+#calculating reflectance
+df <- df %>% 
+  mutate(reflectance = (pi*radiance*d^2)/(cos(s*pi/180)*df$irradiance))
 
-#try this but first make list of TIF files as dataframes individually
-df <- subl %>% 
-  lapply(raster) %>% 
-  lapply(rasterToPoints)
-
-
-dat <- map(files,function)
-
-dfreduce <- reduce(df,cross_join)
-
-#---------------------------------------------------------------------------------------------------
-#one that works but takes longer
-# :(
-# r <- l %>% 
-#   lapply(raster) %>%  #rasterizing all files
-#   lapply(crop, e) %>% #cropping all files in list by extent e
-#   stack() %>% #stacking all rasters
-#   rasterToPoints()  #converting stack to table with x y and DN
-# as.data.frame()
-#---------------------------------------------------------------------------------------------------
-
-#combining band information with raster information
-r <- full_join(r,Hyperion_Bands) #combing dataframes
-r <- na.omit(r) # removing all rows with NA
-r <- clean_names(r) #cleaning names
-#---------------------------------------------------------------------------------------------------
-#plotting
 #plotting by cell#
-subr = r %>% 
-  filter(cell == 12447)
-subr3 = r %>% 
+p = df %>% 
+  filter(cell == 6000)
+p2 = df %>% 
   filter(cell == 12439)
 
-#1-27722 amount of cells
+p <- p %>% 
+  ggplot(aes(x=wavelength_nm,y=reflectance)) +
+  geom_point()
 
-p <- subr %>% 
-  ggplot(aes(x=wavelength_nm,y=dn)) +
-  geom_line()
-
-p2 <- subr3 %>% 
-  ggplot(aes(x=wavelength_nm,y=dn)) +
+p2 <- p2 %>% 
+  ggplot(aes(x=wavelength_nm,y=reflectance)) +
   geom_line()
 
 plot_grid(p, p2, labels = "AUTO")
 
 
 #plotting by band#
-subr2 <- r %>% 
-  filter(bands == "B025")
+map <- df %>% 
+  filter(bands == "B025") 
 
-map <- subr2 %>% 
+map <- map %>% 
   ggplot() +
-  geom_tile(aes(x = easting, y = northing, fill = dn, text = cell)) +
+  geom_raster(aes(x = easting, y = northing, fill = reflectance, text = cell)) +
   theme_classic()
+
 ggplotly(map, tooltip = c("cell","easting","northing"))
-
-
-
-
-
-#---------------------------------------------------------------------------------------------------
-#testing with one TIF
-B016 <- rast("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105110KF_B016_L1T.TIF")
-plot(B016)
-#cropping imagery
-e <- as(extent(310000, 320000, 4150000, 4200000), 'SpatialPolygons')
-B016 <- crop(B016, e)
-
-#turning rast into dataframe
-B016 = as.data.frame(B016, xy=TRUE,na.rm=TRUE)
-
-
-# Function to convert Radiance to TOA Reflectance
-# PTOA = (pi*L*d^2) / E*cos(theta)
-# PTOA (top of atmosphere reflectance)
-# Radiance (at satellite radiance)
-# d (Earth Sun distance correction factor)
-
-# E (extraterrestrial irradiance)
-# theta (angle of solar incidence)
-
-B016r <- B016 %>%
-  add_column(Band_Name = "B016") %>% 
-  rename(DN = EO1H0380342005105110KF_B016_L1T,
-         Easting = x,
-         Northing = y) %>% 
-  mutate(Radiance = DN/40) #DN to radiance
- # mutate(Reflectance = (pi*Radiance*)) #Radiance to reflectance
-
-
-total <- merge(B016a,Hyperion_Bands,by="Band_Name")
-
-
-#plotting
-ggplot() +
-  geom_raster(data=B016r,aes(x = Easting, y = Northing, fill = Radiance)) +
-  theme_classic()
-
 
 
 #---------------------------------------------------------------------------------------------------
@@ -178,11 +115,10 @@ UGS <- rast("../../UGS/StateOfUtah250k.tif")
 head(describe("../../UGS/StateOfUtah250k.tif"),n=55)
 UGS
 ext(UGS) #checking extent of UGS
-e <- as(extent(310000, 320000, 4150000, 4200000), 'SpatialPolygons')
+e <- as(extent(314700, 352800, 4110000, 4219800), 'SpatialPolygons')
 croppedUGS <- crop(UGS, e)
 #croppedUGS <- aggregate(croppedUGS,2) #makes pixels 2 times are large
 plot(croppedUGS)
-df <- as.data.frame(croppedUGS,xy=TRUE,na.rm=TRUE)
 
 saveRDS()
 #---------------------------------------------------------------------------------------------------
