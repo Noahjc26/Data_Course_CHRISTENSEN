@@ -4,7 +4,7 @@ library(modelr)
 library(easystats)
 
 df <- read.csv("./unicef-u5mr.csv") %>% 
-  clean_names()
+  janitor::clean_names()
 
 cdf <- df %>% 
 pivot_longer(cols = starts_with("u5mr"),
@@ -78,7 +78,16 @@ ggsave("./CHRISTENSEN_plot_3.png",p3)
 
 
 
+#couldn't get model to predict accurately
+mod4 <- glm(deaths_per_1000 ~ country_name + year, data = cdf)
+summary(mod4)
+y <- data.frame(country_name = "Ecuador", year = 2020)
 
+predict(mod4,y)
 
-predict(mod3)
+grouped2 <- aggregate(cdf$deaths_per_1000, list(cdf$country_name,cdf$year), FUN=mean, na.rm = TRUE) 
+#renaming columns
+colnames(grouped2) <- c("country_name","year","mean_U5MR")
 
+mod5 <- glm(mean_U5MR ~ country_name + year, data = grouped2)
+predict(mod5,y)
