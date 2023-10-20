@@ -1,0 +1,110 @@
+trap_number,species,d13c,body_length_mm,d15n,weight_mg,well_number,latitude,longitude
+2,Pterostichus melanarius,NA,15.28,NA,2.669,D3,40.32701,-111.53027
+3,Pterostichus melanarius,NA,16.12,NA,1.878,A12,40.32696,-111.5306
+4,Pterostichus melanarius,NA,11.82,NA,1.458,B3,40.32689,-111.53064
+4,Otiorhynchus,NA,6.5,NA,1.534,C1,40.32689,-111.53064
+4,Otiorhynchus,NA,6.58,NA,2.007,D5,40.32689,-111.53064
+4,Otiorhynchus,NA,7.37,NA,1.823,C11,40.32689,-111.53064
+5,NA,NA,17.67,NA,1.389,E5,40.32637,-111.53146
+5,Pterostichus melanarius,NA,18.84,NA,0.717,B11,40.32637,-111.53146
+5,Otiorhynchus,NA,8.06,NA,1.266,B10,40.32637,-111.53146
+5,Pterostichus melanarius,NA,17.14,NA,0.829,E6,40.32637,-111.53146
+5,Pterostichus melanarius,NA,18.35,NA,1.682,C8,40.32637,-111.53146
+5,Otiorhynchus,NA,7.8,NA,1.717,C5,40.32637,-111.53146
+5,Otiorhynchus,NA,5.91,NA,0.868,A5,40.32637,-111.53146
+5,Otiorhynchus,NA,7.04,NA,2.407,D9,40.32637,-111.53146
+5,Otiorhynchus,NA,7.66,NA,1.282,D1,40.32637,-111.53146
+5,Otiorhynchus,NA,8.29,NA,3.28,A10,40.32637,-111.53146
+6,Otiorhynchus,NA,7.13,NA,1.623,A3,40.32639,-111.53164
+6,rolly polly,NA,9.2,NA,3.168,A1,40.32639,-111.53164
+6,Pterostichus melanarius,NA,18.08,NA,2.196,A4,40.32639,-111.53164
+6,Pterostichus melanarius,NA,19.41,NA,1.044,B5,40.32639,-111.53164
+6,Pterostichus melanarius,NA,19.34,NA,2.654,D11,40.32639,-111.53164
+6,Pterostichus melanarius,NA,18.29,NA,2.499,B12,40.32639,-111.53164
+6,Pterostichus melanarius,NA,17.09,NA,1.346,B2,40.32639,-111.53164
+6,Synuchus dubius,NA,11.87,NA,0.648,B1,40.32639,-111.53164
+6,Pterostichus melanarius,NA,18.58,NA,1.632,D7,40.32639,-111.53164
+6,Pterostichus melanarius,NA,17.13,NA,1.115,C4,40.32639,-111.53164
+6,spider,NA,9.37,NA,0.965,B9,40.32639,-111.53164
+6,ant,NA,11.7,NA,1.097,A11,40.32639,-111.53164
+6,Pterostichus melanarius,NA,16.57,NA,1.468,D6,40.32639,-111.53164
+6,Synuchus dubius,NA,11.82,NA,1.079,B7,40.32639,-111.53164
+6,Pterostichus melanarius,NA,16.38,NA,1.721,B6,40.32639,-111.53164
+6,Pterostichus melanarius,NA,16.42,NA,1.726,C6,40.32639,-111.53164
+6,Synuchus dubius,NA,11.94,NA,0.854,E4,40.32639,-111.53164
+6,Synuchus dubius,NA,11.34,NA,0.799,C3,40.32639,-111.53164
+6,Otiorhynchus,NA,6.86,NA,0.795,E3,40.32639,-111.53164
+6,Otiorhynchus,NA,6.03,NA,1.995,D4,40.32639,-111.53164
+7,millipede,NA,N/A,NA,3.539,A2,40.32582,-111.53193
+7,spider,NA,9.7,NA,1.676,C10,40.32582,-111.53193
+8,Pterostichus melanarius,NA,17.79,NA,2.428,A7,40.32668,-111.53121
+8,Carabus taedatus,NA,21.49,NA,2.403,E2,40.32668,-111.53121
+8,Synuchus dubius,NA,13.63,NA,0.939,A9,40.32668,-111.53121
+8,Pterostichus melanarius,NA,17.05,NA,2.674,C7,40.32668,-111.53121
+8,Pterostichus melanarius,NA,16.28,NA,1.243,C2,40.32668,-111.53121
+8,Pterostichus melanarius,NA,16.34,NA,2.385,A6,40.32668,-111.53121
+8,Pterostichus melanarius,NA,16.92,NA,2.81,B8,40.32668,-111.53121
+8,Pterostichus melanarius,NA,16.88,NA,1.837,E1,40.32668,-111.53121
+8,Pterostichus melanarius,NA,16.52,NA,2.136,C9,40.32668,-111.53121
+8,fly,NA,10.56,NA,0.783,C12,40.32668,-111.53121
+8,Synuchus dubius,NA,11.84,NA,1.694,D8,40.32668,-111.53121
+9,Carabus taedatus,NA,23.59,NA,2.233,D12,40.32665,-111.53005
+9,Pterostichus oregonus?,NA,14.23,NA,1.133,B4,40.32665,-111.53005
+9,Synuchus dubius,NA,11.35,NA,0.631,A8,40.32665,-111.53005
+9,Carabus taedatus,NA,20.52,NA,1.806,E7,40.32665,-111.53005
+9,Synuchus dubius,NA,13.14,NA,2.529,D2,40.32665,-111.53005
+9,Pterostichus oregonus,NA,13.06,NA,1.099,D10,40.32665,-111.53005
+4,Otiorhynchus,NA,8.44,NA,0.84,F7,40.32689,-111.53064
+4,Otiorhynchus,NA,7.52,NA,1.725,E11,40.32689,-111.53064
+7,Otiorhynchus,NA,7.64,NA,1.086,F11,40.32582,-111.53193
+7,Otiorhynchus,NA,8.57,NA,1.518,E8,40.32582,-111.53193
+5,Otiorhynchus,NA,6.83,NA,0.984,F6,40.32637,-111.53146
+5,Otiorhynchus,NA,7.36,NA,1.111,E12,40.32637,-111.53146
+4,Otiorhynchus,NA,8.16,NA,0.646,E9,40.32689,-111.53064
+4,Otiorhynchus,NA,7.84,NA,1.726,E10,40.32689,-111.53064
+5,Carabus taedatus,NA,25.99,NA,1.299,A4 (tray 2),40.32637,-111.53146
+9,Carabus taedatus,NA,22.06,NA,2.871,G2,40.32665,-111.53005
+3,Pterostichus melanarius,NA,18.49,NA,1.937,G9,40.32696,-111.5306
+2,Pterostichus melanarius,NA,18.91,NA,2.609,H11,40.32701,-111.53027
+8,Pterostichus melanarius,NA,16.96,NA,1.588,A3 (tray 2),40.32668,-111.53121
+6,Pterostichus melanarius,NA,16.75,NA,2.243,H12,40.32639,-111.53164
+5,Pterostichus melanarius,NA,17.68,NA,2.564,A12 (tray 2),40.32637,-111.53146
+6,Pterostichus melanarius,NA,16.82,NA,2.474,H10,40.32639,-111.53164
+6,Pterostichus melanarius,NA,16.69,NA,1.829,A5 (tray 2),40.32639,-111.53164
+3,Pterostichus melanarius,NA,17.43,NA,2.555,A6(tray 2),40.32696,-111.5306
+1,Pterostichus melanarius,NA,16.49,NA,2.876,H7,40.32701,-111.53027
+1,Pterostichus melanarius,NA,17.24,NA,1.215,A7(tray 2),40.32701,-111.53027
+9,Pterostichus melanarius,NA,19.44,NA,1.818,A9 (tray 2),40.32665,-111.53005
+5,Pterostichus melanarius,NA,17.35,NA,2.688,A8,40.32637,-111.53146
+5,Pterostichus melanarius,NA,15.64,NA,1.52,H4,40.32637,-111.53146
+8,Pterostichus melanarius,NA,17.35,NA,2.889,H5,40.32668,-111.53121
+8,Pterostichus melanarius,NA,18.51,NA,2.8,A11 (tray 2),40.32668,-111.53121
+8,Pterostichus melanarius,NA,17.35,NA,1.332,H9,40.32668,-111.53121
+6,Pterostichus melanarius,NA,14.87,NA,1.506,A2 (tray 2),40.32639,-111.53164
+8,Pterostichus melanarius,NA,18.15,NA,2.869,G7,40.32668,-111.53121
+8,Pterostichus melanarius,NA,17.3,NA,2.557,A1 (tray 2),40.32668,-111.53121
+8,Pterostichus melanarius,NA,19.14,NA,NA,NA,40.32668,-111.53121
+1,Pterostichus melanarius,NA,18.48,NA,2.961,H2,40.32701,-111.53027
+3,Pterostichus melanarius,NA,17.15,NA,3.043,H3,40.32696,-111.5306
+6,Pterostichus melanarius,NA,14.84,NA,1.981,H8,40.32639,-111.53164
+8,Pterostichus melanarius,NA,19.03,NA,1.86,F4,40.32668,-111.53121
+6,Pterostichus melanarius,NA,19.92,NA,2.144,F2,40.32639,-111.53164
+9,Pterostichus melanarius,NA,19.04,NA,2.182,F9,40.32665,-111.53005
+3,Pterostichus melanarius,NA,16.04,NA,2.576,G8,40.32696,-111.5306
+3,Pterostichus melanarius,NA,15.73,NA,2.167,F8,40.32696,-111.5306
+8,Pterostichus melanarius,NA,17.75,NA,3.492,G11,40.32668,-111.53121
+6,Pterostichus melanarius,NA,16.72,NA,1.654,F5,40.32639,-111.53164
+6,Pterostichus melanarius,NA,15.18,NA,1.731,F10,40.32639,-111.53164
+8,Pterostichus melanarius,NA,18.26,NA,3.227,G3,40.32668,-111.53121
+8,Synuchus dubius,NA,11.99,NA,1.351,G10,40.32668,-111.53121
+9,Synuchus dubius,NA,13.77,NA,3.415,G1,40.32665,-111.53005
+6,Synuchus dubius,NA,12.18,NA,1.075,F12,40.32639,-111.53164
+8,Pterostichus melanarius,NA,17.73,NA,2.442,G12,40.32668,-111.53121
+6,Pterostichus melanarius,NA,16.87,NA,2.794,G6,40.32639,-111.53164
+5,Synuchus dubius,NA,12.79,NA,1.9,G5,40.32637,-111.53146
+8,Synuchus dubius,NA,11.57,NA,1.397,F1,40.32668,-111.53121
+8,Synuchus dubius,NA,11.87,NA,2.07,G4,40.32668,-111.53121
+8,Synuchus dubius,NA,11.4,NA,1.519,F3,40.32668,-111.53121
+6,NA,NA,10.78,NA,0.888,H1,40.32639,-111.53164
+6,NA,NA,15.4,NA,1.024,H6,40.32639,-111.53164
+10,NA,NA,NA,NA,NA,NA,40.32795,-111.52892

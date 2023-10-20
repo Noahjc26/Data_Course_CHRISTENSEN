@@ -10,6 +10,7 @@ library(plotly)
 library(cowplot)
 library(prismatic)
 library(stringr)
+library(tmap)
 
 
 #[1] reading in csv of hyperion band information
@@ -52,6 +53,52 @@ l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/", #[8]
 
 e <- as(extent(327500, 332500, 4150000, 4155000), 'SpatialPolygons') #setting extent
 
+
+
+VNIR <- l[(8:57)]
+SWIR <- l[c(79,83:119,133:164,183:184,188:220)]
+
+VNIR <- rast(VNIR)
+SWIR <- rast(SWIR)
+
+VNIR <- crop(VNIR,e)
+SWIR <- crop(SWIR,e)
+
+VNIR = VNIR/40
+SWIR = SWIR/80
+
+
+
+
+
+r <- rast(l[c(8:57,77:224)])
+
+r <- crop(r,e)
+
+head(Hyperion_Bands)
+vect <- if_else(Hyperion_Bands$Description == "VNIR",40,80)
+Hyperion_Bands$Rad_Conv = vect
+
+
+Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
+
+plot(Surf_Reflectance)
+
+Surf_Reflectance %>% 
+plotRGB(r=18,g=31,b=99,stretch = "hist")
+
+#draw
+
+#applying CART model
+
+features <- draw(x="points",n=4)
+features
+dftest <- terra::extract(Surf_Reflectance,features) %>% 
+  t()
+plot(dftest[,1])
+
+
+#performing everything but changing it to a dataframe
 df <- l[c(8:57,79,83:119,133:164,183:184,188:220)] %>% #removing non working bands
   rast() %>%  #creating raster from list
   crop(e) %>% #cropping by extent
@@ -108,6 +155,15 @@ map <- map %>%
 
 ggplotly(map, tooltip = c("cell","easting","northing"))
 
+
+raster <- (rast(l))
+crop(r)
+plot()
+ra <- stack(ra)
+plot(ra)
+tmap_leaflet(                                                      
+  tm_shape(as(raster, "Raster")) + # what sf to use for creating a map 
+    tm_raster())
 
 #---------------------------------------------------------------------------------------------------
 #UGS interactive map
