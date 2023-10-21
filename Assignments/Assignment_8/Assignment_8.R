@@ -4,9 +4,9 @@ library(easystats)
 library(modelr)
 
 # load the “/Data/mushroom_growth.csv” data set
-df <- read.csv("../../Data/mushroom_growth.csv") %>% 
-  clean_names()
+df <- read.csv("../../Data/mushroom_growth.csv")
 
+df <- df %>% janitor::clean_names()
 # creates several plots exploring relationships between the response and predictors
 df %>% 
   ggplot(aes(y=growth_rate, x=humidity, fill=species)) +
@@ -26,7 +26,7 @@ m1 <- lm(data = df, formula = growth_rate ~ temperature + humidity)
 m2 <- lm(data = df, formula = growth_rate ~ temperature * humidity)
 m3 <- lm(data = df, formula = growth_rate ~ species * humidity * light * temperature)
 m4 <- lm(data = df, formula = growth_rate ~ temperature * humidity * species)
-plot(m4)
+
 
 # calculates the mean sq. error of each model
 mean(m1$residuals^2)
@@ -38,19 +38,51 @@ compare_performance(m1,m2,m3,m4) %>% plot
 m3
 # adds predictions based on new hypothetical values for the independent variables used in your model
 
-pred <- df %>% 
+df <- df %>% 
   add_predictions(m3)
 
-head(df)
-x <- data.frame(species = c("P.ostreotus","P.cornucopiae"),
-                humidity = c("Low","High"),
-                light = c(10,35))
-predict(m3,x)
+x <- data.frame(species = c("P.ostreotus","P.cornucopiae","P.cornucopiae","P.cornucopiae"),
+                humidity = c("Low","High","High","High"),
+                light = c(10,35,50,50),
+                temperature = c(10,20,0,-10))
 
-# plots these predictions alongside the real data
+hypo <- predict(m3,x)
 
-# Upload responses to the following as a numbered plaintext document to Canvas:
-#   Are any of your predicted response values from your best model scientifically meaningless? Explain.
-# In your plots, did you find any non-linear relationships? Do a bit of research online and give a link to at least one resource explaining how to deal with modeling non-linear relationships in R.
+
+# combining hypothetical input data with hypothetical predictions into one new data frame
+hyp_preds <- data.frame(species = x$species,
+                        light = x$light,
+                        humidity = x$humidity,
+                        temperature = x$temperature,
+                        pred = hypo)
+
+# Add new column showing whether a data point is real or hypothetical
+df$PredictionType <- "Real"
+hyp_preds$PredictionType <- "Hypothetical"
+
+# joining our real data and hypothetical data (with model predictions)
+fullpreds <- full_join(df,hyp_preds)
+
+
+# plotting temperature compared to predictions
+ggplot(fullpreds,aes(x=temperature,y=pred,color=PredictionType)) +
+  geom_point() +
+  geom_point(aes(y=growth_rate),color="Black") +
+  theme_minimal()
+
+# plotting light compared to predictions
+ggplot(fullpreds,aes(x=light,y=pred,color=PredictionType)) +
+  geom_point(aes(y=growth_rate),color="Black") +
+  geom_point() +
+  theme_minimal()
+
 # Write the code you would use to model the data found in “/Data/non_linear_relationship.csv” with a linear model (there are a few ways of doing this)
-  
+
+non <- read.csv("../../Data/non_linear_relationship.csv")
+
+
+non %>% 
+  ggplot(aes(x=(predictor^3),y=(response))) +
+  geom_point() +
+  geom_smooth()
+
