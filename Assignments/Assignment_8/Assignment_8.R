@@ -80,6 +80,7 @@ ggplot(fullpreds,aes(x=light,y=pred,color=PredictionType)) +
 
 non <- read.csv("../../Data/non_linear_relationship.csv")
 
+mod
 
 non %>% 
   ggplot(aes(x=(predictor^3),y=(response))) +

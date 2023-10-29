@@ -12,7 +12,7 @@ x %>% names
 
 x2 <- subset(x, x$x39ar_released < 99.5)
 
-x2 <- subset(x2, x$x39ar_released > 15)
+x2 <- subset(x2, x$x39ar_released > 50)
 p <- x %>% 
   ggplot(aes(x=x39ar_released,y=apparent_age)) +
     geom_line() +
@@ -29,18 +29,17 @@ p <- p + annotate(geom="text", x=50, y=950000000, label="plateau",size=5,
 
 summary(x2$apparent_age)
 sd(x2$apparent_age,na.rm=TRUE)
-    ggsave("../age_spectrum_1_hw2_isotope.png",p)
+    ggsave("../../../age_spectrum_4_hw2_isotope.png",p)
 
     
     
     
 #   Part 2 D) 
-x <- read.delim(pipe("pbpaste")) %>% 
-      clean_names()
+x <- read.delim(pipe("pbpaste"))
 
-
+x <- x %>% janitor::clean_names()
 p <- x %>%   
-ggplot(aes(y=x39ar_40ar,x=x36ar_40ar)) +
+ggplot(aes(x=x39ar_40ar,y=x36ar_40ar)) +
   geom_point() +
   geom_smooth(method = 'lm',se=FALSE) +
   stat_regline_equation() +
@@ -50,19 +49,18 @@ ggplot(aes(y=x39ar_40ar,x=x36ar_40ar)) +
         title = "Inverse Isochron")
 
 
-sd(x$x36ar_40ar)
+sd(x$x39ar_40ar)
 p
 
-ggsave("../inverse_isochron_2_hw2_isotope.png",p)
-
+ggsave("../../../inverse_isochron_4_hw2_isotope.png",p)
 
 
 
 
 
 df <- data.frame(biotite = c("674-1","579-11","529-9"),
-           inverse_isochron_age = c(38.7,37.7,35),
-           age_spectrum_age = c(38.4,37.9,37.7))
+           inverse_isochron_age = c(38.4,37.4,34.7),
+           age_spectrum_age = c(38.4,37.8,37.7))
 
 df <- 
   pivot_longer(df,cols = c(inverse_isochron_age,age_spectrum_age),
@@ -73,14 +71,14 @@ df <-
 
 pp <- df %>% 
   ggplot(aes(x=biotite,y=age_Ma,color=age_type)) +
-  geom_errorbar(aes(ymin=age_Ma-sd, ymax=age_Ma+sd), width=.2,
+  geom_errorbar(aes(ymin=age_Ma-sd, ymax=age_Ma+sd,alpha=0.5), width=.2,
                 position=position_dodge(0)) +
   geom_point() +
   theme_bw() +
   labs(title = "Zircon Ages",
        x = "Biotite Number",
        y = "Age in Ma")
-
+pp
 ggsave("../../../ZirconAges.png",pp)
 
 
@@ -106,18 +104,19 @@ ppp <- ggplot(data=part7,aes(y=x206pb_238u,x=x207pb_235u)) +
 ggsave("../../../Part7.png",ppp)
 
 
-part8 <- read_delim(pipe("pbpaste")) %>% 
-  clean_names()
+part8 <- read_delim(pipe("pbpaste"))
 
-part8
+
+part8 <- part8 %>%  clean_names()
 pppp<- part8 %>% 
   ggplot(aes(x=depth_mm,y=ln_be)) +
   geom_point() +
-  geom_smooth(method = 'lm',se=FALSE) +
+  geom_smooth(method = 'lm',se=TRUE) +
   stat_regline_equation() +
   labs(x="Depth in mm",
        y="ln(10Be dpm/kg)",
        title = "Mn nodule concentrations at depths") +
   theme_bw()
 pppp
+sd(part8$ln_be)
 ggsave("../../../Part8.png",pppp)

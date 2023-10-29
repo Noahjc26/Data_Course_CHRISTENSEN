@@ -1,102 +1,143 @@
 library(raster)
-# library(hyperSpec)
-# library(devtools)
 library(terra)
 library(tidyverse)
-# library(gdalUtilities)
 library(janitor)
-# library(rgdal)
 library(plotly)
 library(cowplot)
 library(prismatic)
 library(stringr)
 library(tmap)
+library(mapedit)
+library(rpart)
+library(rpart.plot)
+library(rasterVis)
+library(mapview)
+library(caret)
+library(forcats)
 
 
-#[1] reading in csv of hyperion band information
-#[2] removing nm in wavelength column
-#[3] removing FWHM: in wavelength column
-#[4] separating Wavelength and FWHM into their own columns
-#[5] separating VNIR and SWIR from band names
-#[6] removing temp columns 
-#[7] reading in metadata
-#[8] reading in bands
+Hyperion_Bands <- readRDS("./cleaned_hyperion_band_info.rds")
+# reading in metadata
 
-Hyperion_Bands <- read.csv("Hyperion_Bands_Wavelengths.csv") %>%  #[1]
-  select(-c(X,X.1,X.2,X.3)) #removing random extra columns
-Hyperion_Bands <- Hyperion_Bands[-(199:235),] #removing random extra rows
-
-Hyperion_Bands$Wavelength <- gsub("nm","",Hyperion_Bands$Wavelength)    #[2]
-Hyperion_Bands$Wavelength <- gsub("FWHM:","",Hyperion_Bands$Wavelength) #[3]
-
-Hyperion_Bands <- Hyperion_Bands %>% 
-  as.data.frame() %>% 
-  separate(Wavelength,into = c("Wavelength_nm","FWHM_nm"),sep=",",convert = TRUE) %>% #[4]
-  separate(Description,into = c("Description", "Temp", "Temp2"),sep=" ") %>%          #[5]
-  rename("Bands" = "Band_Name")
-
-Hyperion_Bands <- subset(Hyperion_Bands, select = -c(Temp, Temp2)) #[6]
-
-
-md <- read_lines("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105110KF_MTL_L1T.TXT") #[7]
+md <- read_lines("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105110KF_MTL_L1T.TXT")
 
 #setting up variables for reflectance equation
-julian_day <- as.numeric(word(md[18], 8))
-d <- (1-0.01672*cos(0.9865*(julian_day-4)))#earth sun distance in astronomical distance
-sun_elevation <- as.numeric(word(md[300],7))
-s <- (90-sun_elevation) #solar zenith angle indegrees
+julian_day <- as.numeric(word(md[18], 8)) #getting julian day
+d <- (1-0.01672*cos(0.9865*(julian_day-4))) #earth sun distance in astronomical distance
+sun_elevation <- as.numeric(word(md[300],7)) #getting sun elevation
+s <- (90-sun_elevation)  #solar zenith angle in degrees
 
-
-l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/", #[8]
+#reading in bands
+l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/",
                 pattern='TIF$',
                 full.names=TRUE)
 
-e <- as(extent(327500, 332500, 4150000, 4155000), 'SpatialPolygons') #setting extent
+#setting extent
+e <- as(extent(335000, 345000, 4185000, 4195000), 'SpatialPolygons')
 
-
-
-VNIR <- l[(8:57)]
-SWIR <- l[c(79,83:119,133:164,183:184,188:220)]
-
-VNIR <- rast(VNIR)
-SWIR <- rast(SWIR)
-
-VNIR <- crop(VNIR,e)
-SWIR <- crop(SWIR,e)
-
-VNIR = VNIR/40
-SWIR = SWIR/80
-
-
-
-
-
+#removing non working bands
 r <- rast(l[c(8:57,77:224)])
 
+#cropping r
 r <- crop(r,e)
 
-head(Hyperion_Bands)
+#adding value in new column based on Hyperion_Bands$Description
 vect <- if_else(Hyperion_Bands$Description == "VNIR",40,80)
+
+#adding vect as new column
 Hyperion_Bands$Rad_Conv = vect
 
-
+#correcting to surface reflectance
 Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
 
-plot(Surf_Reflectance)
-
+#plotting RGB by bands
 Surf_Reflectance %>% 
-plotRGB(r=18,g=31,b=99,stretch = "hist")
+plotRGB(r=31,g=20,b=10,stretch = "hist")
 
-#draw
 
-#applying CART model
 
+libraries <- list.files(path="../../usgs_spectral_library/usgs_splib07 (1)/ASCIIdata/ASCIIdata_splib07b_cvHYPERION/ChapterM_Minerals/",
+                full.names=TRUE)
+
+spec <- libraries %>% 
+  lapply(read.csv) %>% 
+  as.data.frame()
+
+
+libraries
+read.csv("../../usgs_spectral_library/usgs_splib07 (1)/ASCIIdata/ASCIIdata_splib07b_cvHYPERION/ChapterM_Minerals/s07HYPRN_Calcite_CO2004_BECKb_AREF.txt") %>% 
+  
+
+
+
+
+#applying supervised classification: CART model
 features <- draw(x="points",n=4)
 features
 dftest <- terra::extract(Surf_Reflectance,features) %>% 
   t()
 plot(dftest[,1])
 
+Hyperion_Bands
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------------------------------------------------
+# reading in metadata
+md <- read_lines("../../Hyperion/Imagery/EO1H0380332004336110PZ_SGS_01/EO1H0380332004336110PZ_1T/EO1H0380332004336110PZ_MTL_L1T.TXT")
+
+#setting up variables for reflectance equation
+julian_day <- as.numeric(word(md[18], 8)) #getting julian day
+d <- (1-0.01672*cos(0.9865*(julian_day-4))) #earth sun distance in astronomical distance
+sun_elevation <- as.numeric(word(md[300],7)) #getting sun elevation
+s <- (90-sun_elevation)  #solar zenith angle in degrees
+
+#reading in bands
+l <- list.files(path="../../Hyperion/Imagery/EO1H0380332004336110PZ_SGS_01/EO1H0380332004336110PZ_1T/",
+                pattern='TIF$',
+                full.names=TRUE)
+
+#setting extent
+e <- as(extent(317500, 322500, 4169000, 4174000), 'SpatialPolygons')
+ext(r)
+#removing non working bands
+r <- rast(l[c(8:57,77:224)])
+
+#cropping r
+r <- crop(r,e)
+
+#adding value in new column based on Hyperion_Bands$Description
+vect <- if_else(Hyperion_Bands$Description == "VNIR",40,80)
+
+#adding vect as new column
+Hyperion_Bands$Rad_Conv = vect
+
+#correcting to surface reflectance
+Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
+
+#plotting RGB by bands
+Surf_Reflectance %>% 
+  plotRGB(r=31,g=20,b=10,stretch = "hist")
+#
+
+
+
+
+
+#-----------------------------------------------------------
 
 #performing everything but changing it to a dataframe
 df <- l[c(8:57,79,83:119,133:164,183:184,188:220)] %>% #removing non working bands
