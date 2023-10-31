@@ -15,207 +15,153 @@ library(mapview)
 library(caret)
 library(forcats)
 
-
-Hyperion_Bands <- readRDS("./cleaned_hyperion_band_info.rds")
-# reading in metadata
-
-md <- read_lines("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105110KF_MTL_L1T.TXT")
-
-#setting up variables for reflectance equation
-julian_day <- as.numeric(word(md[18], 8)) #getting julian day
-d <- (1-0.01672*cos(0.9865*(julian_day-4))) #earth sun distance in astronomical distance
-sun_elevation <- as.numeric(word(md[300],7)) #getting sun elevation
-s <- (90-sun_elevation)  #solar zenith angle in degrees
-
-#reading in bands
-l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/",
-                pattern='TIF$',
-                full.names=TRUE)
-
-#setting extent
-e <- as(extent(335000, 345000, 4185000, 4195000), 'SpatialPolygons')
-
-#removing non working bands
-r <- rast(l[c(8:57,77:224)])
-
-#cropping r
-r <- crop(r,e)
-
-#adding value in new column based on Hyperion_Bands$Description
-vect <- if_else(Hyperion_Bands$Description == "VNIR",40,80)
-
-#adding vect as new column
-Hyperion_Bands$Rad_Conv = vect
-
-#correcting to surface reflectance
-Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
+surf_reflectance <- readRDS("./corrected_EO1H0380342005105110KF_1T.rds")
 
 #plotting RGB by bands
-Surf_Reflectance %>% 
+surf_reflectance %>% 
 plotRGB(r=31,g=20,b=10,stretch = "hist")
 
+#testing the draw and extract functions
+# features <- draw(x="points",n=4)
+# dftest <- terra::extract(Surf_Reflectance,features) %>% 
+#   t()
+# plot(dftest[,1])
+# head(dftest)
 
 
-libraries <- list.files(path="../../usgs_spectral_library/usgs_splib07 (1)/ASCIIdata/ASCIIdata_splib07b_cvHYPERION/ChapterM_Minerals/",
-                full.names=TRUE)
+#applying supervised classification 1
+snow <- draw(x="points",n=4)
 
-spec <- libraries %>% 
-  lapply(read.csv) %>% 
-  as.data.frame()
+#turning into dataframe and extracting values
+snow_df <- terra::extract(surf_reflectance,snow)
 
+#renaming to band names
+# colnames(snow_df) <- sapply(strsplit(colnames(snow_df), "_"), function(x) x[2])
 
-libraries
-read.csv("../../usgs_spectral_library/usgs_splib07 (1)/ASCIIdata/ASCIIdata_splib07b_cvHYPERION/ChapterM_Minerals/s07HYPRN_Calcite_CO2004_BECKb_AREF.txt") %>% 
-  
+#finding mean of all columns
+snow_df <- as.data.frame.list(colMeans(snow_df))
 
+#adding column "class" with values "snow"
+snow_df$class = "snow"
 
-
-
-#applying supervised classification: CART model
-features <- draw(x="points",n=4)
-features
-dftest <- terra::extract(Surf_Reflectance,features) %>% 
-  t()
-plot(dftest[,1])
-
-Hyperion_Bands
-
-
-
-
-
-
+#pivoting longer
+snow_df_long <- snow_df %>% 
+pivot_longer(cols = starts_with("E"),
+             values_to = "reflectance",
+             names_to = "bands")
 
 
 
+#applying supervised classification 2
+green <- draw(x="points",n=4)
+#turning into dataframe and extracting values
+green_df <- terra::extract(surf_reflectance,green)
+
+#renaming to band names
+# colnames(green_df) <- sapply(strsplit(colnames(green_df), "_"), function(x) x[2])
+
+#finding mean of all columns
+green_df <- as.data.frame.list(colMeans(green_df))
+
+#adding column "class" with values "green"
+green_df$class = "green"
+
+#pivoting longer
+green_df_long <- green_df %>% 
+  pivot_longer(cols = starts_with("E"),
+               values_to = "reflectance",
+               names_to = "bands")
 
 
 
+#applying supervised classification 3
+rock <- draw(x="points",n=4)
+#turning into dataframe and extracting values
+rock_df <- terra::extract(surf_reflectance,rock)
+
+#renaming to band names
+# colnames(rock_df) <- sapply(strsplit(colnames(rock_df), "_"), function(x) x[2])
+
+#finding mean of all columns
+rock_df <- as.data.frame.list(colMeans(rock_df))
+
+#adding column "class" with values "rock"
+rock_df$class = "rock"
+
+#pivoting longer
+rock_df_long <- rock_df %>% 
+  pivot_longer(cols = starts_with("E"),
+               values_to = "reflectance",
+               names_to = "bands")
 
 
 
+#joining all of the dataframes together
+part_df <- full_join(green_df_long,snow_df_long)
+full_df <- full_join(part_df,rock_df_long)
 
-#-----------------------------------------------------------------------------
-# reading in metadata
-md <- read_lines("../../Hyperion/Imagery/EO1H0380332004336110PZ_SGS_01/EO1H0380332004336110PZ_1T/EO1H0380332004336110PZ_MTL_L1T.TXT")
+full_df <- full_df %>% 
+  select(-ID)
+#plotting the dataframes
+full_df %>% 
+  ggplot(aes(x=bands,y=reflectance,color=class)) +
+  geom_point() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90,size = 4))
 
-#setting up variables for reflectance equation
-julian_day <- as.numeric(word(md[18], 8)) #getting julian day
-d <- (1-0.01672*cos(0.9865*(julian_day-4))) #earth sun distance in astronomical distance
-sun_elevation <- as.numeric(word(md[300],7)) #getting sun elevation
-s <- (90-sun_elevation)  #solar zenith angle in degrees
+#combining all of the dataframes
+training_points = rbind(green_df,snow_df,rock_df)
 
-#reading in bands
-l <- list.files(path="../../Hyperion/Imagery/EO1H0380332004336110PZ_SGS_01/EO1H0380332004336110PZ_1T/",
-                pattern='TIF$',
-                full.names=TRUE)
+#turning into data frame
+df <- data.frame(training_points)
 
-#setting extent
-e <- as(extent(317500, 322500, 4169000, 4174000), 'SpatialPolygons')
-ext(r)
-#removing non working bands
-r <- rast(l[c(8:57,77:224)])
-
-#cropping r
-r <- crop(r,e)
-
-#adding value in new column based on Hyperion_Bands$Description
-vect <- if_else(Hyperion_Bands$Description == "VNIR",40,80)
-
-#adding vect as new column
-Hyperion_Bands$Rad_Conv = vect
-
-#correcting to surface reflectance
-Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
-
-#plotting RGB by bands
-Surf_Reflectance %>% 
-  plotRGB(r=31,g=20,b=10,stretch = "hist")
-#
-
-
-
-
-
-#-----------------------------------------------------------
-
-#performing everything but changing it to a dataframe
-df <- l[c(8:57,79,83:119,133:164,183:184,188:220)] %>% #removing non working bands
-  rast() %>%  #creating raster from list
-  crop(e) %>% #cropping by extent
-  as.data.frame(xy=TRUE,cells=TRUE,na.rm=TRUE) #creating dataframe
-
-colnames(df) <- df %>% 
-  gsub(pattern = "^[^_]*_([^_]*).*",
-       replacement = "\\1", x=names(df)) #getting rid of everything before the first underscore and after the second one
-
-df <- df %>%   
-pivot_longer(cols = starts_with("B"), #moving all bands into one column
-             names_to = "Bands",
-             values_to = "DN") %>%
-  rename(easting = x,northing = y)
-
-df <- full_join(df,Hyperion_Bands) %>% 
-  na.omit(df) %>%  # removing all rows with NA
-  clean_names() #cleaning names
-
-#calculating radiance
-df <- df %>%
-  mutate(radiance = case_when(description == "VNIR" ~ dn / 40,
-                           description == "SWIR" ~ dn / 80))
-
-#calculating reflectance
 df <- df %>% 
-  mutate(reflectance = (pi*radiance*d^2)/(cos(s*pi/180)*df$irradiance))
+  select(-ID)
+#creating model based on column "class" 
+model.class <- rpart(as.factor(class)~.,
+                     data = df,
+                     method = 'class',
+                     control = rpart.control("minsplit" = 1))
 
-#plotting by cell#
-p = df %>% 
-  filter(cell == 6000)
-p2 = df %>% 
-  filter(cell == 12439)
-
-p <- p %>% 
-  ggplot(aes(x=wavelength_nm,y=reflectance)) +
-  geom_point()
-
-p2 <- p2 %>% 
-  ggplot(aes(x=wavelength_nm,y=reflectance)) +
-  geom_line()
-
-plot_grid(p, p2, labels = "AUTO")
+#plotting the model as a tree
+rpart.plot(model.class, box.palette = 3, main = "Classification Tree")
 
 
-#plotting by band#
-map <- df %>% 
-  filter(bands == "B025") 
 
-map <- map %>% 
-  ggplot() +
-  geom_raster(aes(x = easting, y = northing, fill = reflectance, text = cell)) +
-  theme_classic()
+pr <- predict(surf_reflectance, model.class, type ='class', progress = 'text') %>% 
+  raster()
 
-ggplotly(map, tooltip = c("cell","easting","northing"))
+values(pr)
+levelplot(pr, maxpixels = 1e6,
+          scales=list(draw=FALSE),
+          main = "Supervised Classification of Imagery")
 
 
-raster <- (rast(l))
-crop(r)
-plot()
-ra <- stack(ra)
-plot(ra)
-tmap_leaflet(                                                      
-  tm_shape(as(raster, "Raster")) + # what sf to use for creating a map 
-    tm_raster())
+surf_reflectance %>% 
+  plotRGB(r=31,g=20,b=10,stretch = "hist")
 
-#---------------------------------------------------------------------------------------------------
-#UGS interactive map
-UGS <- rast("../../UGS/StateOfUtah250k.tif")
-head(describe("../../UGS/StateOfUtah250k.tif"),n=55)
-UGS
-ext(UGS) #checking extent of UGS
-e <- as(extent(314700, 352800, 4110000, 4219800), 'SpatialPolygons')
-croppedUGS <- crop(UGS, e)
-#croppedUGS <- aggregate(croppedUGS,2) #makes pixels 2 times are large
-plot(croppedUGS)
 
-saveRDS()
-#---------------------------------------------------------------------------------------------------
+names(surf_reflectance)
+
+
+#reading in mineral signature data frame
+min_sig <- read_rds("./cleaned_mineral_signatures.rds")
+
+
+long_min %>% 
+  ggplot(aes(x=bands,y=reflectance)) +
+  geom_point() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90,size = 4))
+
+#creating model based on column "class" 
+model.class <- rpart(as.factor(mineral)~.,
+                     data = min_sig,
+                     method = 'class')
+model.class
+#plotting the model as a tree
+rpart.plot(model.class, box.palette = 3, main = "Classification Tree")
+
+
+
+
