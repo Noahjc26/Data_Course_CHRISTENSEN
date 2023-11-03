@@ -50,6 +50,15 @@ Hyperion_Bands$Rad_Conv = vect
 #correcting to surface reflectance
 Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
 
+sf2 <- Surf_Reflectance
+
+o_names = strsplit(names(sf2),"_")
+
+vect <- lapply(1:nlyr(sf2), function(x) o_names[[x]][2])
+
+names(sf2) = unlist(vect)
+sf2
+
 #saving as RDS
 saveRDS(Surf_Reflectance,"./corrected_EO1H0380342005105110KF_1T.rds")
 

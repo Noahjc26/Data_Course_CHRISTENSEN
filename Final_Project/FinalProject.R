@@ -14,6 +14,7 @@ library(rasterVis)
 library(mapview)
 library(caret)
 library(forcats)
+library(ripa)
 
 surf_reflectance <- readRDS("./corrected_EO1H0380342005105110KF_1T.rds")
 

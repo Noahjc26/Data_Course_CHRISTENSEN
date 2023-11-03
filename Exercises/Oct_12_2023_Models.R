@@ -127,7 +127,7 @@ mod5 <- glm(data=mpg,formula = hwy ~ log(displ))
 #predicting binary outcomes (true,false) instead of continuous data
 
 #logistic regression (outcome is true false)
-df <- read.csv("./Data/GradSchool_Admissions.csv")
+df <- read.csv("../../Data/GradSchool_Admissions.csv")
 df <- df %>% 
   mutate(admit = as.logical(admit))
 
