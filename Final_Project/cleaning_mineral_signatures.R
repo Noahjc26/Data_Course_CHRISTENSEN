@@ -60,12 +60,38 @@ min_sig <- min_sig[min_sig$X8 >= 0, ]
 min_sig <- min_sig[min_sig$X192 >= 0, ]
 
 
+# This function almost renames everything except B009 and B009 are set as B8 and B9
+rename_columns_1 <- function(df) {
+  new_names <- colnames(df)
+  new_names <- sub("^X([0-9])$", "B00\\1", new_names)  # Match and replace 'X8' and 'X9'
+  new_names <- sub("^X", "B0", new_names)  # Replace 'X' with 'B0'
+  new_names <- sub("^B0+", "B", new_names)  # Remove leading zeros
+  new_names <- sub("B$", "B00", new_names)  # Add two trailing zeros if it ends with 'B'
+  new_names <- sub("B(\\d{2}$)", "B0\\1", new_names)  # Add one leading zero
+  colnames(df) <- new_names
+  return(df)
+}
+
+# Call the function and pass your dataframe as an argument
+your_dataframe <- rename_columns_1(min_sig)
+
+
+# This changes B8 and B9 into B008 and B009
+rename_columns_2 <- function(df) {
+  new_names <- colnames(df)
+  new_names <- sub("^B([0-9])$", "B00\\1", new_names)  # Match and replace 'X8' and 'X9'
+  colnames(df) <- new_names
+  return(df)
+}
+
+# Call the function and pass your dataframe as an argument
+your_dataframe <- rename_columns_2(your_dataframe)
+
 
 long_min <- min_sig %>% 
   pivot_longer(cols = starts_with("X"),
                names_to = "bands",
                values_to = "reflectance")
-
 
 
 long_min %>% 
@@ -76,4 +102,4 @@ long_min %>%
 
 
 #saving as RDS
-saveRDS(object = df3,file = "./cleaned_mineral_signatures.rds")
+saveRDS(object = your_dataframe,file = "./cleaned_mineral_signatures.rds")

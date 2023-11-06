@@ -19,7 +19,7 @@ library(forcats)
 Hyperion_Bands <- readRDS("./cleaned_hyperion_band_info.rds")
 
 # reading in metadata
-md <- read_lines("../../Hyperion/L1T/EO1H0380342005105110KF_1T/EO1H0380342005105110KF_MTL_L1T.TXT")
+md <- read_lines("../../Hyperion/sevier_lake/EO1H0380332014325110PZ_1T/EO1H0380332014325110PZ_MTL_L1T.TXT")
 
 #setting up variables for reflectance equation
 julian_day <- as.numeric(word(md[18], 8)) #getting julian day
@@ -28,18 +28,18 @@ sun_elevation <- as.numeric(word(md[300],7)) #getting sun elevation
 s <- (90-sun_elevation)  #solar zenith angle in degrees
 
 #reading in bands
-l <- list.files(path="../../Hyperion/L1T/EO1H0380342005105110KF_1T/",
+l <- list.files(path="../../Hyperion/sevier_lake/EO1H0380332014325110PZ_1T/",
                 pattern='TIF$',
                 full.names=TRUE)
 
-#setting extent
-e <- as(extent(332500, 337500, 4170000, 4175000), 'SpatialPolygons')
+# #setting extent
+# e <- as(extent(332500, 337500, 4170000, 4175000), 'SpatialPolygons')
 
 #removing non working bands
 r <- rast(l[c(8:57,77:224)])
 
 #cropping r
-r <- crop(r,e)
+# r <- crop(r,e)
 
 #adding value in new column based on Hyperion_Bands$Description
 vect <- if_else(Hyperion_Bands$Description == "VNIR",40,80)
@@ -50,6 +50,7 @@ Hyperion_Bands$Rad_Conv = vect
 #correcting to surface reflectance
 Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
 
+#renaming bands
 sf2 <- Surf_Reflectance
 
 o_names = strsplit(names(sf2),"_")
@@ -59,8 +60,15 @@ vect <- lapply(1:nlyr(sf2), function(x) o_names[[x]][2])
 names(sf2) = unlist(vect)
 sf2
 
+# Create a logical SpatRaster where 1 indicates that all bands are 0
+all_bands_zero <- all(sf2 == 0, na.rm = TRUE)
+
+# Set the cells with all bands equal to 0 to NA
+sf2[all_bands_zero] <- NA
+
+
 #saving as RDS
-saveRDS(Surf_Reflectance,"./corrected_EO1H0380342005105110KF_1T.rds")
+saveRDS(sf2,"./corrected_EO1H0380332014325110PZ_1T.rds",)
 
 
 

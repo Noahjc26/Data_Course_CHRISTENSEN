@@ -14,13 +14,96 @@ library(rasterVis)
 library(mapview)
 library(caret)
 library(forcats)
-library(ripa)
+library(tidyterra)
+library(e1071)
+library(randomForest)
 
-surf_reflectance <- readRDS("./corrected_EO1H0380342005105110KF_1T.rds")
+
+surf_reflectance <- readRDS("./corrected_EO1H0380332014325110PZ_1T.rds")
+
+e <- as(extent(291500, 300000, 4236500, 4245000), 'SpatialPolygons')
 
 #plotting RGB by bands
 surf_reflectance %>% 
-plotRGB(r=31,g=20,b=10,stretch = "hist")
+plotRGB(r=31,g=20,b=10,stretch = "lin")
+
+Milford_quad <- rast("../../Quads/Milford_Frisco_Quad/ofr-674/OFR-674DM_Milford-EastHalfFriscoQuads_DataView.tif")
+
+
+cropped_surf <- terra::crop(surf_reflectance,e)
+cropped_milford <- crop(Milford_quad,e)
+
+#making Milford_quad have the same crs as surf_reflectance
+test <- project(cropped_milford,crs(surf_reflectance))
+
+
+#_____
+
+#now to maybe make a classification
+
+min_sig <- readRDS("./cleaned_mineral_signatures.rds")
+
+# Remove everything before and including the underscore
+min_sig$mineral <- sub(".*_", "", min_sig$mineral)
+
+#setting as a factor
+min_sig$mineral <- as.factor(min_sig$mineral)
+
+#thats a lot of minerals
+unique(min_sig$mineral)
+
+#reducing to a few minerals
+reduced_min_sig <- subset(min_sig, mineral == c("biotite","quartz","microcline","dolomite"))
+
+reduced_min_sig$mineral <- as.factor(reduced_min_sig$mineral)
+
+
+
+full_averaged_df <- min_sig %>%
+  group_by(mineral) %>%
+  summarise(across(starts_with("B"), mean))
+
+full_averaged_df$mineral <- as.factor(full_averaged_df$mineral)
+
+# Train the Random Forest model
+rf_model <- randomForest(mineral ~ ., data = full_averaged_df, ntree = 1500,na.action = na.omit)  # Adjust ntree and other parameters as needed
+
+
+classified_raster <- predict(cropped_surf, rf_model,na.omit = TRUE)
+
+
+plot(classified_raster)
+
+ggplot() +
+  geom_spatraster_rgb(data=test)
+
+
+long_r_m_s <- reduced_min_sig %>% 
+  pivot_longer(cols = starts_with("B"),
+               names_to = "Band",
+               values_to = "Reflectance")
+
+long_r_m_s %>% 
+  ggplot(aes(x=Band,y=Reflectance,color=mineral)) +
+  geom_point(size=0.25)
+
+#creating a dataframe. that is the average reflectance values for each mineral
+averaged_df <- reduced_min_sig %>%
+  group_by(mineral) %>%
+  summarise(across(starts_with("B"), mean))
+
+long_averaged_df <- averaged_df %>% 
+  pivot_longer(cols = starts_with("B"),
+               names_to = "Band",
+               values_to = "Reflectance")
+
+long_averaged_df %>% 
+  ggplot(aes(x=Band,y=Reflectance,color=mineral)) +
+  geom_point(size=0.25)
+
+
+
+
 
 #testing the draw and extract functions
 # features <- draw(x="points",n=4)
