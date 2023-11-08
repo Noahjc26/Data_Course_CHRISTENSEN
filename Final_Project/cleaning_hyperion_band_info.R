@@ -20,5 +20,11 @@ Hyperion_Bands <- Hyperion_Bands %>%
 # removing temp columns 
 Hyperion_Bands <- subset(Hyperion_Bands, select = -c(Temp, Temp2))
 
+#adding value in new column based on Hyperion_Bands$Description
+vect <- if_else(Hyperion_Bands$Description == "VNIR",40,80)
+
+#adding vect as new column
+Hyperion_Bands$Rad_Conv = vect
+
 #saving as RDS
 saveRDS(object = Hyperion_Bands,file = "./cleaned_hyperion_band_info.rds")

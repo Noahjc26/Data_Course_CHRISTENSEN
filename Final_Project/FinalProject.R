@@ -19,7 +19,8 @@ library(e1071)
 library(randomForest)
 
 
-surf_reflectance <- readRDS("./corrected_EO1H0380332014325110PZ_1T.rds")
+
+surf_reflectance <- rast("../../Hyperion/corrected_EO1H0380332014325110PZ_1T.tif")
 
 e <- as(extent(291500, 300000, 4236500, 4245000), 'SpatialPolygons')
 
@@ -31,7 +32,7 @@ Milford_quad <- rast("../../Quads/Milford_Frisco_Quad/ofr-674/OFR-674DM_Milford-
 
 
 cropped_surf <- terra::crop(surf_reflectance,e)
-cropped_milford <- crop(Milford_quad,e)
+cropped_milford <- terra::crop(Milford_quad,e)
 
 #making Milford_quad have the same crs as surf_reflectance
 test <- project(cropped_milford,crs(surf_reflectance))
@@ -42,15 +43,6 @@ test <- project(cropped_milford,crs(surf_reflectance))
 #now to maybe make a classification
 
 min_sig <- readRDS("./cleaned_mineral_signatures.rds")
-
-# Remove everything before and including the underscore
-min_sig$mineral <- sub(".*_", "", min_sig$mineral)
-
-#setting as a factor
-min_sig$mineral <- as.factor(min_sig$mineral)
-
-#thats a lot of minerals
-unique(min_sig$mineral)
 
 #reducing to a few minerals
 reduced_min_sig <- subset(min_sig, mineral == c("biotite","quartz","microcline","dolomite"))
@@ -68,6 +60,8 @@ full_averaged_df$mineral <- as.factor(full_averaged_df$mineral)
 # Train the Random Forest model
 rf_model <- randomForest(mineral ~ ., data = full_averaged_df, ntree = 1500,na.action = na.omit)  # Adjust ntree and other parameters as needed
 
+rf_model
+varImpPlot(rf_model)
 
 classified_raster <- predict(cropped_surf, rf_model,na.omit = TRUE)
 
@@ -100,6 +94,115 @@ long_averaged_df <- averaged_df %>%
 long_averaged_df %>% 
   ggplot(aes(x=Band,y=Reflectance,color=mineral)) +
   geom_point(size=0.25)
+
+
+
+
+
+#trying to get absorbance features
+
+#reducing to a mineral
+dolomite <- subset(min_sig, mineral == "dolomite")
+
+dolomite <- dolomite %>% 
+  pivot_longer(cols = starts_with("B"),
+               values_to = "Reflectance",
+               names_to = "Band")
+
+dolomite <- dolomite[1:198,]
+
+# Define a function to identify absorption dips
+identify_absorption_dips <- function(wavelength, reflectance) {
+  # Initialize an empty list to store absorption dips
+  absorption_dips <- list()
+  
+  # Set a threshold to define a significant reduction in reflectance
+  threshold <- 10000  # Adjust as needed
+  
+  # Loop through the spectral data
+  for (i in 2:(length(wavelength) - 1)) {
+    # Check for a local minimum (dip) in reflectance
+    if (reflectance[i] < reflectance[i - 1] && reflectance[i] < reflectance[i + 1] && reflectance[i] < threshold) {
+      absorption_dips[[length(absorption_dips) + 1]] <- data.frame(Wavelength = wavelength[i], Reflectance = reflectance[i])
+    }
+  }
+  
+  # Combine the identified absorption dips into a single data frame
+  absorption_dips <- do.call(rbind, absorption_dips)
+  
+  return(absorption_dips)
+}
+
+# Extract absorption dips from the spectral data
+absorption_dips <- identify_absorption_dips(dolomite$Band, dolomite$Reflectance)
+
+# Visualize the spectral signature with identified absorption dips
+ggplot(data = dolomite, aes(x = Band, y = Reflectance)) +
+  geom_point() +
+  geom_point(data = absorption_dips, aes(x = Wavelength, y = Reflectance, color = "Absorption Dip"), size = 2) +
+  labs(x = "Wavelength", y = "Reflectance") +
+  theme_minimal()
+
+
+
+
+
+
+
+
+
+# Define a function to identify and extract absorption valleys based on reflectance values
+identify_absorption_valleys <- function(wavelength, reflectance, threshold_percentage = 10) {
+  # Calculate the threshold based on the range of reflectance values
+  range_reflectance <- range(reflectance)
+  threshold <- diff(range_reflectance) * (threshold_percentage / 100) + range_reflectance[1]
+  
+  # Identify regions where reflectance is below the threshold
+  valley_start <- NULL
+  valleys <- list()
+  
+  for (i in 1:length(wavelength)) {
+    if (reflectance[i] < threshold) {
+      if (is.null(valley_start)) {
+        valley_start <- i
+      }
+    } else {
+      if (!is.null(valley_start)) {
+        valley_end <- i
+        valleys[[length(valleys) + 1]] <- spectral_data[valley_start:valley_end, ]
+        valley_start <- NULL
+      }
+    }
+  }
+  
+  return(valleys)
+}
+
+# Define a threshold percentage (e.g., 10% of the reflectance range)
+threshold_percentage <- 50
+
+# Extract absorption valleys for the given threshold percentage
+valleys <- identify_absorption_valleys(spectral_data$Band, spectral_data$Reflectance, threshold_percentage)
+
+#combining data frames
+valleys <- do.call(rbind, valleys)
+
+# Visualize the spectral signature with identified absorption valleys
+  ggplot(data = spectral_data, aes(x = Band, y = Reflectance)) +
+    geom_point() +
+    geom_point(data = valleys,color="red") +
+    labs(x = "Wavelength", y = "Reflectance") +
+    ggtitle(paste("Threshold =", threshold_percentage, "% of reflectance range")) +
+    theme_minimal()
+
+
+
+#how continum removal is applied
+#focus on broader spectra (carbonate) not just mineral based
+
+
+
+
 
 
 

@@ -38,47 +38,40 @@ l <- list.files(path="../../Hyperion/sevier_lake/EO1H0380332014325110PZ_1T/",
 #removing non working bands
 r <- rast(l[c(8:57,77:224)])
 
-#cropping r
-# r <- crop(r,e)
-
-#adding value in new column based on Hyperion_Bands$Description
-vect <- if_else(Hyperion_Bands$Description == "VNIR",40,80)
-
-#adding vect as new column
-Hyperion_Bands$Rad_Conv = vect
-
 #correcting to surface reflectance
 Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
 
-#renaming bands
-sf2 <- Surf_Reflectance
+#splitting names
+names = strsplit(names(Surf_Reflectance),"_")
 
-o_names = strsplit(names(sf2),"_")
+#getting second name for all layers
+vect <- lapply(1:nlyr(Surf_Reflectance), function(x) names[[x]][2])
 
-vect <- lapply(1:nlyr(sf2), function(x) o_names[[x]][2])
+#setting names as vect we just created
+names(Surf_Reflectance) = unlist(vect)
 
-names(sf2) = unlist(vect)
-sf2
+# Creating a logical SpatRaster where 1 indicates that all bands are 0
+all_bands_zero <- all(Surf_Reflectance == 0, na.rm = TRUE)
 
-# Create a logical SpatRaster where 1 indicates that all bands are 0
-all_bands_zero <- all(sf2 == 0, na.rm = TRUE)
+# Setting the cells with all bands equal to 0 to NA
+Surf_Reflectance[all_bands_zero] <- NA
 
-# Set the cells with all bands equal to 0 to NA
-sf2[all_bands_zero] <- NA
+#writing as a tif file
+<<<<<<< HEAD
+writeRaster(Surf_Reflectance, filename = "../../Hyperion/corrected_EO1H0380332014325110PZ_1T.tif")
+=======
+writeRaster(Surf_Reflectance, filename = "./corrected_EO1H0380332014325110PZ_1T.tif")
+>>>>>>> 7cdc7f5 (updating final project)
 
 
-#saving as RDS
-saveRDS(sf2,"./corrected_EO1H0380332014325110PZ_1T.rds",)
-
-
-
+plot(Surf_Reflectance)
 
 
 
 
 
 #performing everything but changing it to a dataframe first
-df <- l[c(8:57,79,83:119,133:164,183:184,188:220)] %>% #removing non working bands
+df <- l[c(8:57,77:224)] %>% #removing non working bands
   rast() %>%  #creating raster from list
   crop(e) %>% #cropping by extent
   as.data.frame(xy=TRUE,cells=TRUE,na.rm=TRUE) #creating dataframe
@@ -125,7 +118,7 @@ plot_grid(p, p2, labels = "AUTO")
 
 #plotting by band#
 map <- df %>% 
-  filter(bands == "B025") 
+  filter(bands == "B030") 
 
 map <- map %>% 
   ggplot() +
@@ -133,14 +126,4 @@ map <- map %>%
   theme_classic()
 
 ggplotly(map, tooltip = c("cell","easting","northing"))
-
-
-raster <- (rast(l))
-crop(r)
-plot()
-ra <- stack(ra)
-plot(ra)
-tmap_leaflet(                                                      
-  tm_shape(as(raster, "Raster")) + # what sf to use for creating a map 
-    tm_raster())
 

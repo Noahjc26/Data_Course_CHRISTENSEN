@@ -42,22 +42,22 @@ colnames(minerals) <- str_extract(colnames(minerals), "[^_]*_[^_]*")
 colnames(minerals)[1277] = "Band"
 
 #turning into matrix and back to dataframe so col and row are switched
-df2 <- data.frame(t(minerals[-1227]))
+minerals <- data.frame(t(minerals[-1227]))
 
 #adding row name (minerals) into a column of their own
-df3 <- df2 %>% 
-  mutate(mineral = rownames(df2))
+minerals <- minerals %>% 
+  mutate(mineral = rownames(minerals))
 
 #renumbering rows instead of mineral names
-rownames(df3)<-c(1:1276)
+rownames(minerals)<-c(1:1276)
 
 #delete row 1276
-min_sig <- df3[-1276,]
+minerals <- minerals[-1276,]
 
 
 #getting rid of negative rows
-min_sig <- min_sig[min_sig$X8 >= 0, ]
-min_sig <- min_sig[min_sig$X192 >= 0, ]
+minerals <- minerals[minerals$X8 >= 0, ]
+minerals <- minerals[minerals$X192 >= 0, ]
 
 
 # This function almost renames everything except B009 and B009 are set as B8 and B9
@@ -73,7 +73,7 @@ rename_columns_1 <- function(df) {
 }
 
 # Call the function and pass your dataframe as an argument
-your_dataframe <- rename_columns_1(min_sig)
+minerals <- rename_columns_1(minerals)
 
 
 # This changes B8 and B9 into B008 and B009
@@ -85,7 +85,17 @@ rename_columns_2 <- function(df) {
 }
 
 # Call the function and pass your dataframe as an argument
-your_dataframe <- rename_columns_2(your_dataframe)
+minerals <- rename_columns_2(minerals)
+
+# Remove everything before and including the underscore
+minerals$mineral <- sub(".*_", "", minerals$mineral)
+
+#setting as a factor
+minerals$mineral <- as.factor(minerals$mineral)
+
+#thats a lot of minerals
+unique(minerals$mineral)
+
 
 
 long_min <- min_sig %>% 
@@ -102,4 +112,4 @@ long_min %>%
 
 
 #saving as RDS
-saveRDS(object = your_dataframe,file = "./cleaned_mineral_signatures.rds")
+saveRDS(object = minerals,file = "./cleaned_mineral_signatures.rds")
