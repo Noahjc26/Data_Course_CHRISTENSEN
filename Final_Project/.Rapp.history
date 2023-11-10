@@ -1,3 +1,4 @@
 load("/Users/noah/Desktop/Data_Course_CHRISTENSEN/Final_Project/cleaned_hyperion_band_info.rds")
 load("/Users/noah/Desktop/Data_Course_CHRISTENSEN/Final_Project/corrected_EO1H0380332014325110PZ_1T.rds")
 load("/Users/noah/Desktop/Data_Course_CHRISTENSEN/Final_Project/cleaned_hyperion_band_info.rds")
+load("/Users/noah/Desktop/Data_Course_CHRISTENSEN/Final_Project/corrected_EO1H0380342012191110KF_1T.rds")

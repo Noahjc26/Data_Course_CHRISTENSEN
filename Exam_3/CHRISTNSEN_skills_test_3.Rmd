@@ -1,0 +1,137 @@
+---
+title: "Quiz 3"
+author: "Noah Christensen"
+output: rmdformats::downcute
+---
+
+___
+
+Here's the packages needed to perform the functions throughout this document:
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(janitor)
+library(broom)
+```
+
+# Part 1
+
+
+## Cleaning
+
+Let's read in the data and clean it up
+
+```{r}
+#reading in dataframe
+df <- read.csv("./FacultySalaries_1995.csv")
+
+#cleaning names
+df <- df %>% clean_names()
+
+#pivoting longer all columns that end with salary
+df <- df %>% pivot_longer(ends_with("salary"),
+                    names_to = "rank",
+                    values_to = "salary")
+
+#getting rid of "VIIB" in tiers
+df <- df %>% filter(tier != "VIIB")
+
+# Extract text between the first and second underscore
+df$rank <- str_extract(df$rank, "(?<=_)[^_]+(?=_.*)")
+```
+
+___
+
+## Plotting
+
+
+Now the dataframe is cleaned let's get plotting
+
+```{r warning=FALSE}
+df %>% 
+  ggplot(aes(x=rank,y=salary,fill=factor(rank))) +
+  geom_boxplot() +
+  facet_grid(~tier) +
+  labs(y="Salary",
+       x="Rank",
+       fill="Rank") +
+  theme_bw() +
+  scale_fill_discrete(labels = c("Assist", "Assoc", "Full")) +
+  scale_x_discrete(labels = c("Assist", "Assoc", "Full"))
+```
+
+___
+
+## Modeling
+
+Creating an anova model
+
+```{r}
+#building and displaying anova model
+amod <- aov(data= df, salary ~ rank + state + tier)
+
+#viewing model
+summary(amod)
+```
+
+# Part 2
+
+
+## Cleaning
+
+
+Let's load in the new data set and clean it up
+
+```{r}
+#reading in and cleaning names
+df2 <- read.csv("./Juniper_Oils.csv") %>% 
+  clean_names()
+
+#pivoting longer
+df2 <- df2 %>% 
+  pivot_longer(cols = c("alpha_pinene","para_cymene","alpha_terpineol","cedr_9_ene","alpha_cedrene","beta_cedrene","cis_thujopsene","alpha_himachalene","beta_chamigrene","cuparene","compound_1","alpha_chamigrene","widdrol","cedrol","beta_acorenol","alpha_acorenol","gamma_eudesmol","beta_eudesmol","alpha_eudesmol","cedr_8_en_13_ol","cedr_8_en_15_ol","compound_2","thujopsenal"),
+               names_to = "chemicalID",
+               values_to = "concentration")
+```
+
+___
+
+## Plotting
+
+
+Plotting data
+
+```{r message=FALSE}
+df2 %>% 
+  ggplot(aes(x=years_since_burn,y=concentration)) +
+  geom_smooth() +
+  facet_wrap(~chemicalID, scales = "free") +
+  theme_bw()
+```
+
+___
+
+## Modeling
+
+
+Creating a model that tells which chemicals have signification concentration changes by the amount of years since the burn 
+
+```{r}
+# creating model
+mod2 <- glm(data=df2, formula = concentration ~ years_since_burn * chemicalID)
+
+# Get tidy output
+tidy_output <- tidy(mod2)
+
+# Filter for significant results (adjust the threshold as needed)
+significant_results <- subset(tidy_output, p.value < 0.05)
+
+# renaming term column
+updated_results <- significant_results %>%
+  mutate(term = sub("^years_since_burn:","",term)) %>% 
+  mutate(term = sub("^chemicalID", "", term))
+  
+# View the modified data frame
+updated_results
+```
+
