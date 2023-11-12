@@ -14,6 +14,10 @@ library(rasterVis)
 library(mapview)
 library(caret)
 library(forcats)
+library(hyperSpec)
+
+#reading in hyperion data
+hyperion_band_info <- readRDS("./hyperion_band_info.rds")
 
 #reading in spectral mineral signatures
 list <-
@@ -42,10 +46,35 @@ colnames(minerals) <- str_extract(colnames(minerals), "[^_]*_[^_]*")
 #renaming blank column to band
 colnames(minerals)[1277] = "Band"
 
+#adding wavelength as a column
+minerals <- minerals %>% 
+  mutate(wavelength = hyperion_band_info$Wavelength_nm)
+
+#------------------------------------
+# Identify columns with negative values
+neg_cols <- sapply(minerals, function(x) any(x < 0))
+
+# Subset the data, excluding columns with negative values
+data_subset <- minerals[, !neg_cols]
+
+# Extract numeric data from the dataframe
+data_matrix <- as.matrix(t(data_subset[, -c(885,886)]))
+
+# Create a hyperSpec object
+hyperspec_object <- new("hyperSpec", wavelength = data_subset$wavelength, spc = data_matrix)
+
+
+plot(hyperspec_object)
 
 
 
-#### stop here if you want to switch to a hyperspec objectt below
+#--------------------------------
+
+
+
+
+
+
 
 
 
@@ -53,16 +82,17 @@ colnames(minerals)[1277] = "Band"
 #turning into matrix and back to dataframe so col and row are switched
 minerals <- data.frame(t(minerals[-1227]))
 
+#--------
 #adding row name (minerals) into a column of their own
 minerals <- minerals %>%
   mutate(mineral = rownames(minerals))
 
 #renumbering rows instead of mineral names
-rownames(minerals) <- c(1:1276)
+rownames(minerals) <- c(1:1277)
 
 #delete row 1276
 minerals <- minerals[-1276, ]
-
+#----------
 
 #getting rid of negative rows
 minerals <- minerals[minerals$X8 >= 0,]
@@ -112,13 +142,3 @@ unique(minerals$mineral)
 #saving as RDS
 saveRDS(object = minerals, file = "./cleaned_mineral_signatures.rds")
 
-
-
-
-#------
-#lets do it as a hyperspec object
-hyperion_band_info <- readRDS("./hyperion_band_info.rds")
-hyperion_band_info
-
-spec <- t(minerals)
-spe
