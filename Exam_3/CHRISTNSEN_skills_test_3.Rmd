@@ -135,3 +135,4 @@ updated_results <- significant_results %>%
 updated_results
 ```
 
+You can see that there are 6 different chemicals that have significant effect on concentration, given the threshold of a p value less than 0.05, with cedrol having the strongest correlation.

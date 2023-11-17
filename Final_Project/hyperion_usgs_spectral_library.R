@@ -16,6 +16,7 @@ library(caret)
 library(forcats)
 library(hyperSpec)
 
+
 #reading in hyperion data
 hyperion_band_info <- readRDS("./hyperion_band_info.rds")
 
@@ -64,11 +65,22 @@ data_matrix <- as.matrix(t(data_subset[, -c(885,886)]))
 hyperspec_object <- new("hyperSpec", wavelength = data_subset$wavelength, spc = data_matrix)
 
 
-plot(hyperspec_object)
+plot(hyperspec_object[325])
+
+hy_sub <- hyperspec_object[325]
+
+str(hy_sub)
 
 
+#keeping on values below wavelength 1650
+plot(hy_sub@data$spc[hy_sub@wavelength <= 1650 & hy_sub@wavelength >= 1350])
 
-#--------------------------------
+names(data_subset)[325]
+
+& hy_sub@wavelength >= 1350]
+length(hy_sub@data$spc)
+hy_sub@wavelength <= 1650
+#-------------------------------
 
 
 

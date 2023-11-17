@@ -20,3 +20,4 @@ hyperspec_object <- new("hyperSpec", wavelength = df$Wavelength, spc = data_matr
 
 # Plot the original spectra
 plot(hyperspec_object)
+summary()

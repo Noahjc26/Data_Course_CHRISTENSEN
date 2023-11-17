@@ -16,10 +16,10 @@ library(caret)
 library(forcats)
 
 #reaading in hyperion band info
-Hyperion_Bands <- readRDS("./cleaned_hyperion_band_info.rds")
+Hyperion_Bands <- readRDS("./hyperion_band_info.rds")
 
 # reading in metadata
-md <- read_lines("../../Hyperion/sevier_lake/EO1H0380332014325110PZ_1T/EO1H0380332014325110PZ_MTL_L1T.TXT")
+md <- read_lines("../../Hyperion/mineral_mountain/EO1H0380332004336110PZ_1T/EO1H0380332004336110PZ_MTL_L1T.TXT")
 
 #setting up variables for reflectance equation
 julian_day <- as.numeric(word(md[18], 8)) #getting julian day
@@ -28,12 +28,10 @@ sun_elevation <- as.numeric(word(md[300],7)) #getting sun elevation
 s <- (90-sun_elevation)  #solar zenith angle in degrees
 
 #reading in bands
-l <- list.files(path="../../Hyperion/sevier_lake/EO1H0380332014325110PZ_1T/",
+l <- list.files(path="../../Hyperion/mineral_mountain/EO1H0380332004336110PZ_1T/",
                 pattern='TIF$',
                 full.names=TRUE)
 
-# #setting extent
-# e <- as(extent(332500, 337500, 4170000, 4175000), 'SpatialPolygons')
 
 #removing non working bands
 r <- rast(l[c(8:57,77:224)])
@@ -57,11 +55,7 @@ all_bands_zero <- all(Surf_Reflectance == 0, na.rm = TRUE)
 Surf_Reflectance[all_bands_zero] <- NA
 
 #writing as a tif file
-<<<<<<< HEAD
-writeRaster(Surf_Reflectance, filename = "../../Hyperion/corrected_EO1H0380332014325110PZ_1T.tif")
-=======
-writeRaster(Surf_Reflectance, filename = "./corrected_EO1H0380332014325110PZ_1T.tif")
->>>>>>> 7cdc7f5 (updating final project)
+writeRaster(Surf_Reflectance, filename = "../../Hyperion/corrected_EO1H0380332004336110PZ_1T.tif")
 
 
 plot(Surf_Reflectance)

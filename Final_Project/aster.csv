@@ -1,0 +1,10 @@
+﻿Band,lower,upper,Spatial Resolution (m),Band Explanation/Uses
+1,520,600,15 m,Visible and Near-Infrared
+2,630,690,15 m,Visible and Near-Infrared
+3,780,860,15 m,Visible and Near-Infrared
+4,1600,1700,30 m,Shortwave Infrared
+5,2145,2185,30 m,Shortwave Infrared
+6,2185,2225,30 m,Shortwave Infrared
+7,2235,2285,30 m,Shortwave Infrared
+8,2295,2365,30 m,Shortwave Infrared
+9,2360,2430,30 m,Shortwave Infrared

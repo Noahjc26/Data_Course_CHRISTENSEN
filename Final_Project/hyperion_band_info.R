@@ -26,5 +26,10 @@ vect <- if_else(Hyperion_Bands$Description == "VNIR",40,80)
 #adding vect as new column
 Hyperion_Bands$Rad_Conv = vect
 
+#adding columns with lower and upper wavelength values
+Hyperion_Bands <- Hyperion_Bands %>%
+  mutate(lower = Wavelength_nm - FWHM_nm) %>% 
+  mutate(upper = Wavelength_nm + FWHM_nm)
+
 #saving as RDS
 saveRDS(object = Hyperion_Bands,file = "./cleaned_hyperion_band_info.rds")
