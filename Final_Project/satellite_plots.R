@@ -1,3 +1,6 @@
+library(tidyverse)
+library(plotly)
+
 #reading in hyperion info
 hyperion_info <- read_rds("./cleaned_hyperion_band_info.rds")
 
@@ -14,32 +17,6 @@ full <- full_join(part,landsat_info)
 
 head(full)
 
-ggplot(hyperion_info, aes(x = Wavelength_nm, y = lower, ymax = upper)) +
-  geom_rect(aes(xmin = Bands, xmax = Bands, ymin = lower, ymax = upper), alpha = 0.5) +
-  labs(title = "Square Plot of Lower and Upper Bounds", x = "Category", y = "Value") +
-  theme_minimal()
-
-
-
-
-# Assuming 'full' is your dataframe
-# Assuming 'full' is your dataframe
-library(ggplot2)
-
-# Assuming 'full' is your dataframe
-library(ggplot2)
-
-# Assuming 'full' is your dataframe
-library(ggplot2)
-
-# Assuming 'full' is your dataframe
-library(ggplot2)
-
-# Assuming 'full' is your dataframe
-library(ggplot2)
-
-# Assuming 'full' is your dataframe
-library(ggplot2)
 
 # Define a color palette
 my_colors <- c("#E41A1C", "#117EB8", "#FFC20A", "#984EA3")
@@ -47,18 +24,12 @@ my_colors <- c("#E41A1C", "#117EB8", "#FFC20A", "#984EA3")
 # Plotting the boxes with different y-axis limits, prettier colors, and borders
  ggplot(full, aes(x = Wavelength_nm, xmin = lower, xmax = upper, ymin = as.numeric(factor(Satellite_Name)) - 0.4, ymax = as.numeric(factor(Satellite_Name)) + 0.4, fill = Satellite_Name)) +
   geom_rect(color = "black", linewidth = 0.3, alpha = .6) +
-  
-  # Adding labels
   labs(title = "Satellites FWHM",
        x = "Wavelength (nm)",
        y = "") +
-  
-  # Set color palette
   scale_fill_manual(values = my_colors) +
-
    theme_minimal() +
-   theme(
-     axis.text.y = element_blank(),# Assuming 'full' is your dataframe
+   theme(axis.text.y = element_blank())
 
 
 
@@ -86,7 +57,7 @@ p <- ggplot(full, aes(x = Wavelength_nm, xmin = lower, xmax = upper, ymin = as.n
   # Reorder legend items
   guides(fill = guide_legend(reverse = TRUE))
 
- 
+ggplotly(p, tooltip = c(full$Bands))
 
 ggsave(filename = "../../Noahjc26.github.io/Media/satellites_FWHM.png",plot = p)
 
@@ -117,16 +88,16 @@ data <- data.frame(Wavelength = wavelengths, Transmission = transmission)
 # Plot the bell curve and vertical lines
 pp <- ggplot(data, aes(x = Wavelength, y = Transmission)) +
   geom_line() +
-  geom_vline(xintercept = c(515.8, 584.5), linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(519, 581), linetype = "dashed", color = "red") +
   labs(title = "Visualizing FWHM",
        x = "Wavelength",
        y = "% Transmission") +
-  theme_minimal() +
+  theme_bw() +
   theme(
     axis.text.x = element_blank(),
   ) +
   ylim(0,100)
-
+pp
 ggsave("../../Noahjc26.github.io/Media/visualizing_FWHM.png",pp)
 
 
