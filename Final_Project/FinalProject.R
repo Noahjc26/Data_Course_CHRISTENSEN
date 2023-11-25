@@ -30,19 +30,27 @@ plotRGB(r=31,g=20,b=10,stretch = "lin")
 
 Milford_quad <- rast("../../Quads/Milford_Frisco_Quad/ofr-674/OFR-674DM_Milford-EastHalfFriscoQuads_DataView.tif")
 
+#making Milford_quad have the same crs as surf_reflectance
+test <- project(Milford_quad,crs(surf_reflectance))
 
 cropped_surf <- terra::crop(surf_reflectance,e)
-cropped_milford <- terra::crop(Milford_quad,e)
+cropped_milford <- terra::crop(test,e)
 
-#making Milford_quad have the same crs as surf_reflectance
-test <- project(cropped_milford,crs(surf_reflectance))
+cropped_milford %>% 
+  plotRGB(1,2,3)
 
 
+cropped_surf %>% 
+  plotRGB(r=31,g=20,b=10,stretch = "lin")
+
+
+writeRaster(cropped_surf,"../../Hyperion/cropped_corrected_EO1H0380332014325110PZ_1T.tif",overwrite=TRUE)
+writeRaster(cropped_milford,"../../Quads/Milford_Frisco_Quad/cropped.tif")
 #_____
 
 #now to maybe make a classification
 
-min_sig <- readRDS("./cleaned_mineral_signatures.rds")
+min_sig <- readRDS("./hyperion_mineral_signatures_cleaned.rds")
 
 #reducing to a few minerals
 reduced_min_sig <- subset(min_sig, mineral == c("biotite","quartz","microcline","dolomite"))
@@ -55,18 +63,22 @@ full_averaged_df <- min_sig %>%
   group_by(mineral) %>%
   summarise(across(starts_with("B"), mean))
 
-full_averaged_df$mineral <- as.factor(full_averaged_df$mineral)
+
 
 # Train the Random Forest model
-rf_model <- randomForest(mineral ~ ., data = full_averaged_df, ntree = 1500,na.action = na.omit)  # Adjust ntree and other parameters as needed
+rf_model <- randomForest(mineral ~ ., data = full_averaged_df, ntree = 100,na.action = na.omit)  # Adjust ntree and other parameters as needed
 
 rf_model
 varImpPlot(rf_model)
 
-classified_raster <- predict(cropped_surf, rf_model,na.omit = TRUE)
+classified_raster <- predict(cropped, rf_model,na.omit = TRUE)
 
 
 plot(classified_raster)
+
+
+
+
 
 ggplot() +
   geom_spatraster_rgb(data=test)

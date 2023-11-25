@@ -20,7 +20,7 @@ Hyperion_Bands <- readRDS("./hyperion_band_info.rds")
 
 # reading in metadata
 md <- read_lines("../../Hyperion/mineral_mountain/EO1H0380332004336110PZ_1T/EO1H0380332004336110PZ_MTL_L1T.TXT")
-
+md
 #setting up variables for reflectance equation
 julian_day <- as.numeric(word(md[18], 8)) #getting julian day
 d <- (1-0.01672*cos(0.9865*(julian_day-4))) #earth sun distance in astronomical distance
@@ -37,7 +37,7 @@ l <- list.files(path="../../Hyperion/mineral_mountain/EO1H0380332004336110PZ_1T/
 r <- rast(l[c(8:57,77:224)])
 
 #correcting to surface reflectance
-Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
+  Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
 
 #splitting names
 names = strsplit(names(Surf_Reflectance),"_")
