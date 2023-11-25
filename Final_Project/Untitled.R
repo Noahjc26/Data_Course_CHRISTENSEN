@@ -49,7 +49,7 @@ geo_map_milford %>%
   plotRGB(1,2,3)
 
 #applying supervised classification 1
-mrs <- draw(x="points",n=10)
+mrs <- draw(x="points",n=25)
 
 #turning into dataframe and extracting values
 mrs_df <- terra::extract(hyperion_milford,mrs)
@@ -57,7 +57,7 @@ mrs_df <- terra::extract(hyperion_milford,mrs)
 #finding mean of all columns
 mrs_df <- as.data.frame.list(colMeans(mrs_df))
 
-#adding column "class" with values "snow"
+#adding column "class" with values "mrs"
 mrs_df$class = "mrs"
 
 #pivoting longer
@@ -69,12 +69,9 @@ mrs_df_long <- mrs_df %>%
 
 
 #applying supervised classification 2
-tbr <- draw(x="points",n=10)
+tbr <- draw(x="points",n=25)
 #turning into dataframe and extracting values
 tbr_df <- terra::extract(hyperion_milford,tbr)
-
-#renaming to band names
-# colnames(green_df) <- sapply(strsplit(colnames(green_df), "_"), function(x) x[2])
 
 #finding mean of all columns
 tbr_df <- as.data.frame.list(colMeans(tbr_df))
@@ -91,12 +88,9 @@ tbr_df_long <- tbr_df %>%
 
 
 #applying supervised classification 3
-two <- draw(x="points",n=10)
+two <- draw(x="points",n=25)
 #turning into dataframe and extracting values
 two_df <- terra::extract(hyperion_milford,two)
-
-#renaming to band names
-# colnames(rock_df) <- sapply(strsplit(colnames(rock_df), "_"), function(x) x[2])
 
 #finding mean of all columns
 two_df <- as.data.frame.list(colMeans(two_df))
@@ -137,7 +131,7 @@ df <- df %>%
 model.class <- rpart(as.factor(class)~.,
                      data = df,
                      method = 'class',
-                     control = rpart.control("minsplit" = 1))
+                     control = rpart.control("minsplit" = 0))
 
 #plotting the model as a tree
 rpart.plot(model.class, box.palette = 3, main = "Classification Tree")
