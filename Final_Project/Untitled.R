@@ -17,6 +17,7 @@ library(forcats)
 library(tidyterra)
 library(e1071)
 library(randomForest)
+library(sf)
 
 hyperion_milford <- rast("../../Hyperion/cropped_corrected_EO1H0380332014325110PZ_1T.tif")
 geo_map_milford <- rast("../../Quads/Milford_Frisco_Quad/cropped.tif")
@@ -64,7 +65,7 @@ mrs_df$class = "mrs"
 mrs_df_long <- mrs_df %>% 
   pivot_longer(cols = starts_with("B"),
                values_to = "reflectance",
-               names_to = "bands")
+               names_to = "Bands")
 
 
 
@@ -83,7 +84,7 @@ tbr_df$class = "tbr"
 tbr_df_long <- tbr_df %>% 
   pivot_longer(cols = starts_with("B"),
                values_to = "reflectance",
-               names_to = "bands")
+               names_to = "Bands")
 
 
 
@@ -102,28 +103,53 @@ two_df$class = "two"
 two_df_long <- two_df %>% 
   pivot_longer(cols = starts_with("B"),
                values_to = "reflectance",
-               names_to = "bands")
+               names_to = "Bands")
+
+#applying supervised classification 3
+tsp <- draw(x="points",n=25)
+
+#turning into dataframe and extracting values
+tsp_df <- terra::extract(hyperion_milford,tsp)
+
+#finding mean of all columns
+tsp_df <- as.data.frame.list(colMeans(tsp_df))
+
+#adding column "class" with values "rock"
+tsp_df$class = "tsp"
+
+#pivoting longer
+tsp_df_long <- tsp_df %>% 
+  pivot_longer(cols = starts_with("B"),
+               values_to = "reflectance",
+               names_to = "Bands")
+
+
+
+
 
 
 
 #joining all of the dataframes together
 part_df <- full_join(two_df_long,mrs_df_long)
+part_df <- full_join(part_df,tsp_df_long)
 full_df <- full_join(part_df,tbr_df_long)
 
-full_df <- full_df %>% 
-  select(-ID)
+full_df <- full_join(full_df,hyperion_band_info)
 #plotting the dataframes
 full_df %>% 
-  ggplot(aes(x=bands,y=reflectance,color=class)) +
-  geom_point() +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90,size = 4))
+  ggplot(aes(x=Wavelength_nm,y=reflectance,color=class)) +
+  geom_smooth() +
+  theme_bw()
 
 #combining all of the dataframes
-training_points = rbind(two_df,tbr_df,mrs_df)
+training_points = rbind(two_df,tbr_df,mrs_df,tsp_df)
+
+#saving as shapefile
+tp_shapefile <- write_sf((rbind(tsp,two,mrs,tsp)), "./calgary_trainingPoints.shp", driver = "ESRI shapefile")
 
 #turning into data frame
 df <- data.frame(training_points)
+
 
 df <- df %>% 
   select(-ID)
@@ -131,19 +157,35 @@ df <- df %>%
 model.class <- rpart(as.factor(class)~.,
                      data = df,
                      method = 'class',
-                     control = rpart.control("minsplit" = 0))
+                     control = rpart.control("minsplit" = -5))
 
 #plotting the model as a tree
-rpart.plot(model.class, box.palette = 3, main = "Classification Tree")
+rpart.plot(model.class, main = "Classification Tree")
 
+#turning into raster instead of spatraster
+raster_hyperion_milford <- stack(hyperion_milford)
 
+#making prediction
+pr <- predict(raster_hyperion_milford, model.class, type ='class', progress = 'text') %>% 
+  ratify()
 
-pr <- predict(hyperion_milford, model.class, type ='class', progress = 'text') %>% 
-  raster()
+#changing prediction labels
+levels(pr) <- levels(pr)[[1]] %>%
+  mutate(legend = c("two","tbr","mrs","tsp"))
 
-values(pr)
-levelplot(pr,
+#making plot of prediction
+levelplot(pr, maxpixels = 1e6,
+          scales=list(draw=FALSE),
           main = "Supervised Classification of Imagery")
+
+#SUPERvised classification methods
+# minimum distance
+# maxiumum likilihood
+# support vector machines
+# k-means
+# PCA for multispectral images (there is gonna be more resources.)
+
+
 
 
 
