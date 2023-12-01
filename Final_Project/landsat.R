@@ -4,6 +4,9 @@ library(raster)
 library(tidyverse)
 library(viridis)
 library(gridExtra)
+library(shiny)
+library(shinyjs)
+library(imager)
 
 
 band1 <- raster("../../landsat/LC09_L2SP_038033_20230715_20230717_02_T1/LC09_L2SP_038033_20230715_20230717_02_T1_SR_B1.TIF")
@@ -65,45 +68,15 @@ print(p2)
 dev.off()
 
 # Plot the original RGB raster
-par(mfrow = c(3, 1))
+par(mfrow = c(3, 3))
 plotRGB(cropped, r=4,g=3,b=2, main = "Original RGB",stretch="lin")
 
 
-
-
-library(shiny)
-library(shinyjs)
-library(imager)
 
 # Load two example images
 img1 <- load.image("./iron_oxides.png")
 img2 <- load.image("./hydroxyl.png")
 
-ui <- fluidPage(
-  useShinyjs(),
-  titlePanel("Compare Images"),
-  sidebarLayout(
-    sidebarPanel(
-      sliderInput("slider", "Slider", min = 0, max = 1, value = 0.5)
-    ),
-    mainPanel(
-      plotOutput("image")
-    )
-  )
-)
-
-server <- function(input, output) {
-  observe({
-    # Render the images side by side with the movable vertical bar
-    img <- cbind(img1 * input$slider, img2 * (1 - input$slider))
-    output$image <- renderPlot({
-      plot(img, axes = FALSE)
-      abline(v = ncol(img) * input$slider, col = "red", lwd = 2)
-    })
-  })
-}
-
-shinyApp(ui, server)
 
 
 
@@ -131,22 +104,24 @@ mtext("Northing", side = 2, line = 3, cex = 1.2)
 legend("bottomright", legend = c("Iron-oxide", "clay-hydroxyl", "ferrous"), fill = c("red","green","blue"))
 
 
+
+cropped <- rast(cropped)
 #snow index
 # Assuming your bands are in the correct order (NIR is 3rd band, SWIR is 6th band)
 ndsi <- (cropped[[3]]-cropped[[6]])/(cropped[[6]]+cropped[[3]])
 
-ndsi
+plot(ndsi)
 #NDSI threshold of 0.4.
-threshold_value <- 0  # Adjust this threshold as needed
+threshold_value <- -0.05  # Adjust this threshold as needed
 
 # Create a binary mask based on the threshold
-not_snow_mask <- ndsi <= threshold_value
+not_snow_mask <- ndsi >= threshold_value
 
-
+plot(not_snow_mask)
 # Subset the original raster using the complement of the mask
 non_snow_raster <- cropped * not_snow_mask
 
-plotRGB(non_snow_raster,4,3,2,stretch="lin")
+plot(non_snow_raster)
 
 
 #reading in beaver quad
