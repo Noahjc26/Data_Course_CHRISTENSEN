@@ -114,3 +114,6 @@ levelplot(aster2[[14]],
 levelplot(aster2[[15]],
           main = "kaolinite, sericite, chlorite and epidote minerals", stretch = "lin")
 
+leaflet() %>% 
+addTiles() %>%
+  addRasterImage(aster2[[13]])
