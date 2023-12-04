@@ -78,8 +78,39 @@ band9 <- resample(band9,band1)
 #stacking all bands
 aster <-  c(band1,band2,band3B,band3N,band4,band5,band6,band7,band8,band9)
 
+
+#band 2 red, band 3 nir for NDVI
+NDVI = (aster[[3]] - aster[[2]])/(aster[[3]] + aster[[2]])
+
+#creating true/false threshold
+ndvi_pixels = NDVI > 0.3
+
+plot(ndvi_pixels)
+
+
+#creating NDSI (Band1 - Band3)/ (Band1 + Band3) (green-NIR)/(green+NIR)
+NDSI = (aster[[1]]-aster[[3]])/(aster[[1]]+aster[[3]])
+
+plot(NDSI)
+
+#creating true/false threshold
+ndsi_pixels = NDSI > 0.3
+
+plot(ndsi_pixels)
+
+combined_mask <- ndsi_pixels | ndvi_pixels
+
+plot(combined_mask)
+
+# Apply the mask to the original raster
+aster_masked <- aster
+
+aster_masked[ndsi_pixels] <- 0
+
+
 raster <- raster(aster)
 writeRaster(aster, "../../ASTER/2005_10_01/full_cleaned.tif")
+writeRaster(aster_masked, "../../ASTER/2005_10_01/full_cleaned_NDSI.tif",overwrite=TRUE)
 
 #band 5/7
 band11 <- (aster[[6]]/aster[[8]])
@@ -96,13 +127,28 @@ band14 <- (aster[[7]]/aster[[9]])*(aster[[10]]/aster[[9]])
 #(b7+b9)/b8 kaolinite, sericite, chlorite and epidoteminerals,
 band15 <- (aster[[8]]+aster[[10]])/aster[[9]]
 
+#band7/band6
+band16 <- (aster[[8]]/aster[[7]])
+
+#band7/Band5
+band17 <- (aster[[8]]/aster[[6]])
+
+#band5/Band6
+band18 <- (aster[[6]]/aster[[7]])
+
 #adding all new ratios
-aster2 <- c(aster,band11,band12,band13,band14,band15)
+aster2 <- c(aster,band11,band12,band13,band14,band15,band16,band17,band18)
+
+
+#dvanced  argillic alterations  (Al–OH minerals) https://www.researchgate.net/publication/290434274_ASTER_spectral_band_ratios_for_detection_of_hydrothermal_alterations_and_ore_deposits_in_the_Panagyurishte_Ore_Region_Central_Srednogorie_Bulgaria
+plotRGB(aster2,18,16,17,stretch = "lin")
+
 
 #looking at alteration zones
-plotRGB(aster2,11,12,4,stretch="lin",main = "Alteration zones",axes=TRUE)
+plotRGB(aster2,11,12,4,stretch="lin",main = "Alteration zones",axes=FALSE)
 
 # off whitish cream color represents hydrothermal alteration
+
 levelplot(aster2[[13]], 
           main = "Hydrothermal Alteration", stretch = "lin")
 
@@ -110,9 +156,12 @@ levelplot(aster2[[13]],
 levelplot(aster2[[14]],
           main = "Calcite index", stretch = "lin")
 
+
 #kaolinite, sericite, chlorite and epidoteminerals,
+
 levelplot(aster2[[15]],
           main = "kaolinite, sericite, chlorite and epidote minerals", stretch = "lin")
+
 
 leaflet() %>% 
 addTiles() %>%
