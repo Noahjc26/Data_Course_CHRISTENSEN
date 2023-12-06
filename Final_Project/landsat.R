@@ -29,6 +29,20 @@ cropped <- crop(landsat_stack,e)
 
 writeRaster(cropped,"../../landsat/LC09_L2SP_038033_20230715_20230717_02_T1/cropped.tif")
 
+
+cropped <- stack("../../landsat/LC09_L2SP_038033_20230715_20230717_02_T1/cropped.tif")
+
+
+
+
+
+
+
+
+
+
+
+
 # 4/2 (iron-oxides), 6/7 (hydroxyl and clay min- erals) and 6/5 (ferrous minerals) 
 iron_oxides <- (cropped[[4]])/(cropped[[2]])
 cropped[[8]] = iron_oxides

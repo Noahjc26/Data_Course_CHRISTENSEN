@@ -12,6 +12,9 @@ library(randomForest)
 library(e1071)
 library(rgdal)
 
+tempdir()
+
+
 #grabbing all aster files
 directory_path <- "../../ASTER/2005_10_01/AST_L1B_00310012005182513_20231130134446_13225/"
 
