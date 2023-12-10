@@ -169,3 +169,14 @@ levelplot(aster2[[15]],
 leaflet() %>% 
 addTiles() %>%
   addRasterImage(aster2[[13]])
+
+
+
+
+cropped <- rast("../../ASTER/2005_10_01/full_cleaned.tif")
+
+# Project pr_copy to have the same extent and resolution as cropped, using method nearest neighbor"
+pr_copy_projected <- projectRaster(pr_copy, cropped,method = "ngb")
+
+# Use the mask function
+cropped_masked <- terra::mask(cropped, pr_copy)
