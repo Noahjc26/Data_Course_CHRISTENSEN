@@ -160,6 +160,9 @@ baren_df_long <- baren_df %>%
 
 saveRDS(baren_df_long,"./baren_classification_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
 
+df_long <- readRDS("./baren_classification_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
+
+df_long$class = barren
 #applying supervised classification 3
 vegetation <- draw(x="points",n=40)
 #turning into dataframe and extracting values
@@ -199,6 +202,10 @@ full_df %>%
 training_points = rbind(vegetation_df,snow_df,baren_df)
 
 saveRDS(training_points,"./training_points_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
+
+training_points <- readRDS("./training_points_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
+
+
 
 #turning into data frame
 df <- data.frame(training_points)
