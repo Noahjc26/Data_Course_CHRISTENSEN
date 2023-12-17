@@ -3,7 +3,6 @@ library(terra)
 library(tidyverse)
 library(janitor)
 library(plotly)
-library(cowplot)
 library(prismatic)
 library(stringr)
 library(tmap)
@@ -37,7 +36,7 @@ l <- list.files(path="../../Hyperion/mineral_mountain/EO1H0380332004336110PZ_1T/
 r <- rast(l[c(8:57,77:224)])
 
 #correcting to surface reflectance
-  Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
+Surf_Reflectance = (pi*(r/Hyperion_Bands$Rad_Conv)*d^2)/(cos(s*pi/180)*Hyperion_Bands$Irradiance)
 
 #splitting names
 names = strsplit(names(Surf_Reflectance),"_")
