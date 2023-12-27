@@ -166,10 +166,15 @@ plotRGB(beav,1,2,3)
 #----
 
 
+#reading in beaver quad
+beaver <- terra::rast("../../Quads/beaver_quad/Beaver.tif")
+beaver <- terra::rectify(beaver)
+cropped_beaver <- crop(beaver,e)
+
+plotRGB(cropped_beaver, r = 1, g = 2, b = 3, axes = TRUE, 
+        stretch = "lin",add=FALSE)
+
+writeRaster(cropped_beaver,"../../Quads/beaver_quad/cropped_beaver.tif")
 
 
 
-
-
-ggplot() +
-  geom_spatraster_rgb(data=test)

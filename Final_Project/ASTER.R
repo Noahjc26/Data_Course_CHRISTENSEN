@@ -2,27 +2,16 @@ library(rasterVis)
 library(raster)
 library(tidyverse)
 library(viridis)
-library(gridExtra)
-library(shiny)
-library(shinyjs)
-library(imager)
-library(rgdal)
 library(terra)
 library(randomForest)
 library(e1071)
-library(rgdal)
-
-tempdir()
 
 
 #grabbing all aster files
-directory_path <- "../../ASTER/2005_10_01/AST_L1B_00310012005182513_20231130134446_13225/"
+directory_path <- "../ASTER/2005_10_01/AST_L1B_00310012005182513_20231130134446_13225/"
 
 # Use list.files with pattern argument to filter files
 tif_files <- list.files(directory_path, pattern = "\\.tif$", full.names = TRUE)
-
-# Print the list of filtered TIFF files
-print(tif_files)
 
 #turning into raster
 band1 <- rast(tif_files[12])
@@ -70,7 +59,7 @@ band3B <- aggregate(band3B,2)
 band3N <- aggregate(band3N,2)
 
 
-#resamplling pixels
+#re-sampling pixels
 band4 <- resample(band4,band1)
 band5 <- resample(band5,band1)
 band6 <- resample(band6,band1)
@@ -78,8 +67,34 @@ band7 <- resample(band7,band1)
 band8 <- resample(band8,band1)
 band9 <- resample(band9,band1)
 
+#DN to spectral radiance using normal gain
+band1 = (band1-1)*1.688
+band2 = (band2-1)*1.415
+band3N = (band3N-1)*0.862
+band3B = (band3B-1)*0.862
+band4 = (band4-1)*0.2174
+band5 = (band5-1)*0.0696
+band6 = (band6-1)*0.0625
+band7 = (band7-1)*0.0597
+band8 = (band8-1)*0.0417
+band9 = (band9-1)*0.0318
+
+#TOA reflectance
+readLines("../ASTER/2005_10_01/AST_L1B_00310012005182513_20231130134446_13225/AST_L1B_00310012005182513_20231130134446_13225.VNIR_Swath.Latitude.txt")
+d <- 
+ESUN <- 
+z <- 
+
+band1 = ((pi*band1*d^2)/(ESUN*cos(z)))
+
+
+
 #stacking all bands
-aster <-  c(band1,band2,band3B,band3N,band4,band5,band6,band7,band8,band9)
+aster <- c(band1,band2,band3B,band3N,band4,band5,band6,band7,band8,band9)
+
+
+
+
 
 
 #band 2 red, band 3 nir for NDVI
