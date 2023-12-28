@@ -84,6 +84,37 @@ cropped_masked <- terra::mask(cropped, pr_copy)
 # Plot the masked raster
 plotRGB(cropped_masked, r=4,g=3,b=2, main = "Original RGB",stretch="lin")
 
+
+# NDVI to get rid of remaining vegetation pixels (Band 5 - Band 4) / (Band 5 + Band 4)
+NDVI = (cropped_masked[[5]]-cropped_masked[[4]])/(cropped_masked[[5]]+cropped_masked[[4]])
+
+NDVI_copy = NDVI
+
+NDVI_copy[NDVI_copy > 0.10] <- NA
+
+plot(NDVI_copy)
+
+# NDSI  (Band 3 – Band 6) / (Band 3 + Band 6)
+NDSI =  (cropped_masked[[3]]-cropped_masked[[6]])/(cropped_masked[[3]]+cropped_masked[[6]])
+
+NDSI_copy = NDSI
+
+NDSI_copy[NDSI_copy > 0] <- NA
+
+plot(NDSI_copy)
+
+
+# Apply the combined mask to the original raster
+masked_cropped <- mask(cropped_masked, NDSI_copy)
+
+# Apply the combined mask to the original raster
+masked_cropped <- mask(masked_cropped, NDVI_copy)
+
+plot(masked_cropped)
+
+cropped_masked = masked_cropped
+
+cropped_masked = stack(cropped_masked)
 #writeRaster(cropped_masked,"../../landsat/LC09_L2SP_038033_20231019_20231020_02_T1/cropped_masked.tif")
 
 # 4/2 (iron-oxides), 6/7 (hydroxyl and clay minerals) and 6/5 (ferrous minerals) 

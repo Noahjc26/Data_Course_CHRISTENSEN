@@ -28,7 +28,6 @@ snow_df_long <- snow_df %>%
 
 saveRDS(snow_df_long,"./snow_classification_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
 
-snow_df_long <-  readRDS("./snow_classification_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
 
 #applying supervised classification 2
 baren <- draw(x="points",n=40)
@@ -50,7 +49,7 @@ baren_df_long <- baren_df %>%
 
 saveRDS(baren_df_long,"./baren_classification_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
 
-baren_df_long <- readRDS("./baren_classification_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
+df_long <- readRDS("./baren_classification_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
 
 df_long$class = barren
 
@@ -71,16 +70,6 @@ vegetation_df_long <- vegetation_df %>%
   pivot_longer(cols = starts_with("L"),
                values_to = "reflectance",
                names_to = "bands")
-
-veg1 <- readRDS("./vegetation_classification_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
-
-# Combine the data frames
-combined_df <- bind_rows(veg1, vegetation_df_long)
-
-# Group by bands and calculate the mean reflectance for each band
-vegetation_df_long <- combined_df %>%
-  group_by(bands) %>%
-  summarise(reflectance = mean(reflectance))
 
 saveRDS(vegetation_df_long,"./vegetation_classification_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
 
