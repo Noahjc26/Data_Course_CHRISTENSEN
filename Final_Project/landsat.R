@@ -85,6 +85,7 @@ cropped_masked <- terra::mask(cropped, pr_copy)
 plotRGB(cropped_masked, r=4,g=3,b=2, main = "Original RGB",stretch="lin")
 
 
+
 # NDVI to get rid of remaining vegetation pixels (Band 5 - Band 4) / (Band 5 + Band 4)
 NDVI = (cropped_masked[[5]]-cropped_masked[[4]])/(cropped_masked[[5]]+cropped_masked[[4]])
 
@@ -163,4 +164,12 @@ levelplot(cropped_masked[[10]],
 plotRGB(cropped_masked, r = 8, g = 9, b = 10, axes = FALSE, 
         stretch = "lin", main = "Sabins Ratio")
 
+cropped_masked <- rast(cropped_masked)
+
+smoothed_raster <- focal(cropped_masked, w = matrix(1, ncol = 5, nrow = 5), fun = mean, na.rm = TRUE)
+
+smoothed_raster = stack(smoothed_raster)
+
+plotRGB(smoothed_raster, r = 8, g = 9, b = 10, axes = FALSE, 
+        stretch = "lin", main = "Sabins Ratio")
 

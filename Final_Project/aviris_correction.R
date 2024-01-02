@@ -19,13 +19,11 @@ library(e1071)
 library(randomForest)
 
 #rasterizing aviris imagery
-aviris2 <- rast("/Users/noah/Desktop/AVIRIS/fish_lake/f100825t01p00r12rdn_b/f100825t01p00r12rdn_b_sc01_ort_img")
+aviris2 <- rast("../../AVIRIS/1999/f991017t01p02_r11c/f991017t01p02_r11rdn_a_img")
 
 #rectifying (this takes a while)
 aviris <- rectify(aviris)
 
-writeRaster(aviris,"../../AVIRIS/fish_lake/f100825t01p00r12rdn_b_sc01_ort_img_corrected.tif")
-head(aviris)
 
 aviris %>% 
 plotRGB(50,20,10)
