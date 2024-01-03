@@ -110,27 +110,4 @@ for (class_spdf in classes_spdf) {
   all_training_data <- rbind(all_training_data, class_df)
 }
 
-
-# Train the Random Forest model (or any other classifier of your choice)
-rf_model <- randomForest(Class ~ ., data = all_training_data)
-
-# Assuming your Landsat data is a raster stack named 'landsat'
-landsat_values <- terra::extract(landsat, raster::extent(landsat))
-
-# Convert to a data frame
-landsat_df <- data.frame(matrix(unlist(landsat_values), ncol = nlayers(landsat), byrow = TRUE))
-colnames(landsat_df) <- paste0("Band", 1:nlayers(landsat))
-
-# If your model was trained using the 'randomForest' package
-prediction_probs <- predict(rf_model, landsat_df, type = "response")
-
-# Find the predicted class based on the highest probability
-predicted_class <- colnames(prediction_probs)[apply(prediction_probs, 1, which.max)]
-
-# Check unique values in the predicted_class vector
-unique_values <- unique(predicted_class)
-print(unique_values)
-
-# Plot the predicted class map
-plot(predicted_class, main = "Predicted Class Map")
-
+saveRDS(all_training_data,"./polygon_training_data_landsat.rds")

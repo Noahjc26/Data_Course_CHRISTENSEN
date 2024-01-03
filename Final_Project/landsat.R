@@ -30,17 +30,13 @@ cropped <- crop(bands,e)
 plotRGB(cropped, r=4,g=3,b=2, main = "Original RGB",stretch="lin")
 
 #reading in saved training points
-training_points <- readRDS("./training_points_landsat_LC09_L2SP_038033_20231019_20231020_02_T1.rds")
+training_points <- readRDS("./polygon_training_data_landsat.rds")
 
 #turning into data frame
 df <- data.frame(training_points)
 
-#removing ID column
-df <- df %>% 
-  select(-ID)
-
 #creating model based on column "class" 
-model.class <- rpart(as.factor(class)~.,
+model.class <- rpart(as.factor(Class)~.,
                      data = df,
                      method = 'class',
                      control = rpart.control("minsplit" = 1))
@@ -50,6 +46,12 @@ rpart.plot(model.class, box.palette = 4, main = "Classification Tree")
 
 #not sure exactly why but the prediction plot likes it in rast format
 cropped <- rast(cropped)
+
+# setting band names
+new_band_names <- paste0("Band", 1:7)
+
+# Rename the layers
+names(cropped) <- new_band_names
 
 #making prediction plot
 pr <- predict(cropped, model.class, type ='class', progress = 'text') %>% 
@@ -85,13 +87,14 @@ cropped_masked <- terra::mask(cropped, pr_copy)
 plotRGB(cropped_masked, r=4,g=3,b=2, main = "Original RGB",stretch="lin")
 
 
+cropped_masked <- cropped
 
 # NDVI to get rid of remaining vegetation pixels (Band 5 - Band 4) / (Band 5 + Band 4)
 NDVI = (cropped_masked[[5]]-cropped_masked[[4]])/(cropped_masked[[5]]+cropped_masked[[4]])
 
 NDVI_copy = NDVI
 
-NDVI_copy[NDVI_copy > 0.10] <- NA
+NDVI_copy[NDVI_copy > 0.15] <- NA
 
 plot(NDVI_copy)
 

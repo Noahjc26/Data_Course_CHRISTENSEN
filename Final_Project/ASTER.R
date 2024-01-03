@@ -28,7 +28,7 @@ band8 <- rast(tif_files[5]) %>% rectify() %>% crop(e) %>% resample(band1)
 band9 <- rast(tif_files[6]) %>% rectify() %>% crop(e) %>% resample(band1)
 
 
-#ASTERGains 01 HGH, 02 HGH, 3N NOR, 04 NOR, 05 NOR, 06 NOR, 07 NOR, 08 NOR, 09 NOR
+#ASTER Gains 01 HGH, 02 HGH, 3N NOR, 04 NOR, 05 NOR, 06 NOR, 07 NOR, 08 NOR, 09 NOR
 #DN to spectral radiance using normal gain
 band1 = (band1-1)*0.676
 band2 = (band2-1)*0.708
@@ -67,46 +67,106 @@ band7 = ((pi*band7*d^2)/(B7_ESUN*cos(z)))
 band8 = ((pi*band8*d^2)/(B8_ESUN*cos(z)))
 band9 = ((pi*band9*d^2)/(B9_ESUN*cos(z)))
 
-
 #stacking all bands
 aster <- c(band1,band2,band3B,band3N,band4,band5,band6,band7,band8,band9)
 
+#reading in if not already ran
+cropped <- stack("../../ASTER/2005_10_01/full_cleaned.tif")
 
-writeRaster(aster, "../../ASTER/2005_10_01/full_cleaned.tif",overwrite = TRUE)
+#reading in saved training points
+training_points <- readRDS("./polygon_training_data_aster.rds")
 
+#turning into data frame
+df <- data.frame(training_points)
 
+#creating model based on column "class" 
+model.class <- rpart(as.factor(Class)~.,
+                     data = df,
+                     method = 'class',
+                     control = rpart.control("minsplit" = 1))
 
-aster <- stack("../../ASTER/2005_10_01/full_cleaned.tif")
+#plotting the model as a tree
+rpart.plot(model.class, box.palette = 4, main = "Classification Tree")
 
+#not sure exactly why but the prediction plot likes it in rast format
+cropped <- rast(cropped)
 
+# setting band names
+new_band_names <- paste0("Band", 1:10)
+
+# Rename the layers
+names(cropped) <- new_band_names
+
+#making prediction plot
+pr <- predict(cropped, model.class, type ='class', progress = 'text') %>% 
+  raster()
+
+#looking at values
+unique(values(pr))
+
+#plotting
+levelplot(pr, maxpixels = 1e6,
+          main = "Supervised Classification of Imagery")
+
+#saving classification
+#writeRaster(pr,"../../landsat/LC09_L2SP_038033_20231019_20231020_02_T1/classification.tif")
+
+#making a copy to create a mask
+pr_copy <- pr
+
+# Set all values not equal to 1 to NoData or another value
+pr_copy[pr_copy != 1] <- NA  # You can replace NA with any other value
+
+#turning into rast format
+pr_copy <- rast(pr_copy)
+
+#writeRaster(pr_copy,"../../landsat/classification_mask.tif")
+
+# Use the mask function
+cropped_masked <- terra::mask(cropped, pr_copy)
+
+# Now 'cropped_masked' contains the values from 'cropped' where 'pr_copy' has values equal to 1, and other values are set to NA
+
+# Plot the masked raster
+plotRGB(cropped_masked, r=1,g=2,b=3, main = "Original RGB",stretch="lin")
 
 #band 2 red, band 3 nir for NDVI
-NDVI = (aster[[3]] - aster[[2]])/(aster[[3]] + aster[[2]])
-
+#NDVI = (aster[[3]] - aster[[2]])/(aster[[3]] + aster[[2]])
+#
 #creating true/false threshold
-ndvi_pixels = NDVI > 0.4
-
-plot(ndvi_pixels)
-
-
+#ndvi_pixels = NDVI > 0.4
+#
+#plot(ndvi_pixels)
+#
+#
 #creating NDSI (Band1 - Band3)/ (Band1 + Band3) (green-NIR)/(green+NIR)
-NDSI = (aster[[1]]-aster[[3]])/(aster[[1]]+aster[[3]])
-
+#NDSI = (aster[[1]]-aster[[3]])/(aster[[1]]+aster[[3]])
+#
 #creating true/false threshold
-ndsi_pixels = NDSI > -0.30
-
-plot(ndsi_pixels)
-
-combined_mask <- ndsi_pixels | ndvi_pixels
-
-plot(combined_mask)
-
+#ndsi_pixels = NDSI > -0.30
+#
+#plot(ndsi_pixels)
+#
+#combined_mask <- ndsi_pixels | ndvi_pixels
+#
+#plot(combined_mask)
+#
 # Apply the mask to the original raster
-aster_masked <- aster
+#aster_masked <- aster
+#
+#aster_masked[combined_mask] <- NA
+#
+#aster <- aster_masked
 
-aster_masked[combined_mask] <- NA
 
-aster <- aster_masked
+
+
+aster <- cropped_masked
+
+
+
+
+
 
 names(aster)
 #band 5/7
@@ -156,8 +216,6 @@ color_palette <- rev(rainbow(100, end = 0.7))
 # Plot the raster using levelplot with the custom color palette
 levelplot(aster2[[13]], main = "Hydrothermal Alteration", stretch = "lin", col.regions = color_palette)
 
-levelplot(aster2[[13]], 
-          main = "Hydrothermal Alteration", stretch = "lin")
 
 #calcite index
 levelplot(aster2[[14]],
@@ -168,3 +226,4 @@ levelplot(aster2[[14]],
 
 levelplot(aster2[[15]],
           main = "kaolinite, sericite, chlorite and epidote minerals", stretch = "lin")
+
