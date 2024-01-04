@@ -29,7 +29,7 @@ band9 <- rast(tif_files[6]) %>% rectify() %>% crop(e) %>% resample(band1)
 
 
 #ASTER Gains 01 HGH, 02 HGH, 3N NOR, 04 NOR, 05 NOR, 06 NOR, 07 NOR, 08 NOR, 09 NOR
-#DN to spectral radiance using normal gain
+#DN to spectral radiance
 band1 = (band1-1)*0.676
 band2 = (band2-1)*0.708
 band3N = (band3N-1)*0.862
@@ -216,6 +216,14 @@ color_palette <- rev(rainbow(100, end = 0.7))
 # Plot the raster using levelplot with the custom color palette
 levelplot(aster2[[13]], main = "Hydrothermal Alteration", stretch = "lin", col.regions = color_palette)
 
+#setting breaks
+breaks <- c(1.53,1.54,1.6,2.5)
+
+levelplot(aster2[[13]], 
+          colorkey=FALSE,
+          col.regions =  c("yellow","orange","red"),
+          margin = FALSE,
+          at = breaks)
 
 #calcite index
 levelplot(aster2[[14]],
@@ -225,5 +233,13 @@ levelplot(aster2[[14]],
 #kaolinite, sericite, chlorite and epidoteminerals,
 
 levelplot(aster2[[15]],
-          main = "kaolinite, sericite, chlorite and epidote minerals", stretch = "lin")
+          main = "kaolinite, sericite, chlorite and epidote minerals", stretch = "hist")
 
+#setting breaks
+breaks <- c(2.045,2.06,2.07,2.5)
+
+levelplot(aster2[[15]], 
+          colorkey=FALSE,
+          col.regions =  c("yellow","orange","red"),
+          margin = FALSE,
+          at = breaks)

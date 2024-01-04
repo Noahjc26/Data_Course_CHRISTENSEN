@@ -16,7 +16,6 @@ library(caret)
 library(forcats)
 library(hyperSpec)
 
-
 #reading in hyperion data
 hyperion_band_info <- readRDS("./hyperion_band_info.rds")
 
@@ -58,12 +57,20 @@ neg_cols <- sapply(minerals, function(x) any(x < 0))
 # Subset the data, excluding columns with negative values
 data_subset <- minerals[, !neg_cols]
 
+data_subset %>% 
+  ggplot(aes(x=wavelength,y=data_subset$'222_alunite')) +
+  geom_line() +
+  ylim(0,1) +
+  labs(y="Reflectance",
+         x="Wavelength") +
+  theme_bw()
+
+
 # Extract numeric data from the dataframe
 data_matrix <- as.matrix(t(data_subset[, -c(885,886)]))
 
 # Create a hyperSpec object
 hyperspec_object <- new("hyperSpec", wavelength = data_subset$wavelength, spc = data_matrix)
-
 
 plot(hyperspec_object[325])
 
