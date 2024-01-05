@@ -57,14 +57,45 @@ neg_cols <- sapply(minerals, function(x) any(x < 0))
 # Subset the data, excluding columns with negative values
 data_subset <- minerals[, !neg_cols]
 
+#alunite spectral signature
 data_subset %>% 
   ggplot(aes(x=wavelength,y=data_subset$'222_alunite')) +
-  geom_line() +
+  geom_line(color="red") +
   ylim(0,1) +
   labs(y="Reflectance",
          x="Wavelength") +
   theme_bw()
 
+#chlorite spectral signature
+plot <- data_subset %>% 
+  ggplot(aes(x=wavelength)) +
+  geom_line(color="blue",aes(y=data_subset$'805_chlorite'),size=1) +
+  geom_line(color="red",aes(y=data_subset$'222_alunite'),size=1) +
+  geom_line(color="forestgreen",aes(y=data_subset$'1801_kaolinite'),size=1) +
+  geom_line(color="orange",aes(y=data_subset$'1031_dickite'),size=1) +
+  geom_line(color="purple",aes(y=data_subset$'668_calcite'),size=1) +
+  ylim(0,1) +
+  xlim(420,2500) +
+  labs(y="Reflectance",
+       x="Wavelength (nm)") +
+  theme_half_open()
+
+plot + theme(
+  panel.background = element_rect(fill = "black"),  # Set background color
+  plot.background = element_rect(fill = "black"),   # Set plot area color
+  axis.text = element_text(color = "white"),        # Set axis text color
+  axis.title = element_text(color = "white"),        # Set axis title color
+  axis.ticks = element_line(color = "white"),
+  axis.line = element_line(color = "white")
+)
+
+#Propylitic alteration: chlorite, epidote, and sericite.
+#Phyllic alteration: muscovite, kaolinite, and sericite.
+#Argillic alteration: kaolinite, halloysite, and dickite.
+#Silicic alteration: quartz, silica, and chalcedony.
+#Advanced argillic alteration: pyrophyllite, diaspore, and kaolinite.
+#Potassic alteration: K-feldspar and biotite.
+#Sodic alteration: albite and nepheline.
 
 # Extract numeric data from the dataframe
 data_matrix <- as.matrix(t(data_subset[, -c(885,886)]))

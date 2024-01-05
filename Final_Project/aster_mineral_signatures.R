@@ -41,7 +41,7 @@ colnames(minerals) <- str_extract(colnames(minerals), "[^_]*_[^_]*")
 colnames(minerals)[1277] = "Band"
 
 #creating column that is wavelength
-aster_band_info$Wavelength_nm = (aster_band_info$lower+aster_band_info$upper)/2
+aster_band_info$wavelength = (aster_band_info$lower+aster_band_info$upper)/2
 
 #adding wavelength as a column
 minerals <- minerals %>% 
@@ -51,13 +51,26 @@ minerals <- minerals %>%
 neg_cols <- sapply(minerals, function(x) any(x < 0))
 
 # Subset the data, excluding columns with negative values
-data_subset <- minerals[, !neg_cols]
+data_subset_aster <- minerals[, !neg_cols]
 
-data_subset %>% 
-  ggplot(aes(x=wavelength,y=data_subset$'222_alunite')) +
-  geom_point() +
+plot <- ggplot(data_subset_aster, aes(x=wavelength)) +
+  geom_line(color="blue", aes(y=data_subset_aster$'805_chlorite'),size=1) +
+  geom_line(color="red", aes(y=data_subset_aster$'222_alunite'),size=1) +
+  geom_line(color="darkgreen",aes(y=data_subset_aster$'1789_kaolinite'),size=1) +
+  geom_line(color="orange",aes(y=data_subset_aster$'1052_dickite'),size=1) +
+  geom_line(color="purple",aes(y=data_subset_aster$'689_calcite'),size=1) +
   ylim(0,1) +
-  theme_bw()
+  xlim(420,2500) +
+  labs(y="Reflectance",
+       x="Wavelength (nm)") +
+  theme_half_open()
 
-data_subset$wavelength
-class(data_subset$'222_alunite')
+plot + theme(
+  panel.background = element_rect(fill = "black"),  # Set background color
+  plot.background = element_rect(fill = "black"),   # Set plot area color
+  axis.text = element_text(color = "white"),        # Set axis text color
+  axis.title = element_text(color = "white"),        # Set axis title color
+  axis.ticks = element_line(color = "white"),
+  axis.line = element_line(color = "white")
+)
+    

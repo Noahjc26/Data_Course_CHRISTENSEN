@@ -41,7 +41,8 @@ colnames(minerals) = sub(".*?_", "", colnames(minerals))
 #keeping only after first two underscores
 colnames(minerals) <- str_extract(colnames(minerals), "[^_]*_[^_]*")
 
-
+#renaming blank column to band
+colnames(minerals)[1275] = "Band"
 
 #adding wavelength as a column
 minerals$wavelength = landsat_band_info$center_wavelength_nm
@@ -50,13 +51,26 @@ minerals$wavelength = landsat_band_info$center_wavelength_nm
 neg_cols <- sapply(minerals, function(x) any(x < 0))
 
 # Subset the data, excluding columns with negative values
-data_subset <- minerals[, !neg_cols]
+data_subset_landsat <- minerals[, !neg_cols]
 
-data_subset %>% 
-  ggplot(aes(x=wavelength,y=data_subset$'250_alunite')) +
-  geom_point() +
+plot <- ggplot(data_subset_landsat, aes(x=wavelength)) +
+  geom_line(color="blue", aes(y=data_subset_landsat$'832_chlorite'),size=1) +
+  geom_line(color="red", aes(y=data_subset_landsat$'250_alunite'),size=1) +
+  geom_line(color="darkgreen",aes(y=data_subset_landsat$'1817_kaolinite'),size=1) +
+  geom_line(color="orange",aes(y=data_subset_landsat$'1080_dickite'),size=1) +
+  geom_line(color="purple",aes(y=data_subset_landsat$'717_calcite'),size=1) +
   ylim(0,1) +
-  theme_bw()
+  xlim(420,2500) +
+  labs(y="Reflectance",
+       x="Wavelength (nm)") +
+  theme_half_open()
 
-data_subset$wavelength
-class(data_subset$'222_alunite')
+
+plot + theme(
+  panel.background = element_rect(fill = "black"),  # Set background color
+  plot.background = element_rect(fill = "black"),   # Set plot area color
+  axis.text = element_text(color = "white"),        # Set axis text color
+  axis.title = element_text(color = "white"),        # Set axis title color
+  axis.ticks = element_line(color = "white"),
+  axis.line = element_line(color = "white")
+)
