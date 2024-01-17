@@ -85,6 +85,7 @@ model.class <- rpart(as.factor(Class)~.,
                      method = 'class',
                      control = rpart.control("minsplit" = 1))
 
+
 #plotting the model as a tree
 rpart.plot(model.class, box.palette = 4, main = "Classification Tree")
 
@@ -165,9 +166,6 @@ aster <- cropped_masked
 
 
 
-
-
-
 names(aster)
 #band 5/7
 band11 <- (aster[[6]]/aster[[8]])
@@ -204,8 +202,7 @@ smoothed_raster <- focal(aster2, w = matrix(1, ncol = 3, nrow = 3), fun = mean, 
 
 
 plotRGB(smoothed_raster, r = 11, g = 12, b = 4, axes = FALSE, 
-        stretch = "hist")
-
+        stretch = "lin")
 
 #looking at alteration zones
 plotRGB(aster2,11,12,4,stretch="lin",main = "Alteration zones",axes=FALSE)
@@ -216,8 +213,9 @@ color_palette <- rev(rainbow(100, end = 0.7))
 # Plot the raster using levelplot with the custom color palette
 levelplot(aster2[[13]], main = "Hydrothermal Alteration", stretch = "lin", col.regions = color_palette)
 
+
 #setting breaks
-breaks <- c(1.53,1.54,1.6,2.5)
+breaks <- c(1.52,1.54,1.6,2.5)
 
 levelplot(aster2[[13]], 
           colorkey=FALSE,
@@ -225,15 +223,25 @@ levelplot(aster2[[13]],
           margin = FALSE,
           at = breaks)
 
+#making raster with only hydrothermal alteration map to create a mask
+r <- aster2[[13]]
+
+# Create a mask where values are above 1.52
+mask <- r > 1.52
+
+#saving mask
+writeRaster(mask,"../../ASTER/hydrothermal_alteration_mask.tif")
+
+
+#setting breaks
+breaks <- c(1.17,1.19,1.2,1.25)
+
 #calcite index
 levelplot(aster2[[14]],
-          main = "Calcite index", stretch = "lin")
+          main = "Calcite index", stretch = "lin", col.regions =  c("yellow","orange","red"), at=breaks)
 
 
 #kaolinite, sericite, chlorite and epidoteminerals,
-
-levelplot(aster2[[15]],
-          main = "kaolinite, sericite, chlorite and epidote minerals", stretch = "hist")
 
 #setting breaks
 breaks <- c(2.045,2.06,2.07,2.5)
@@ -243,3 +251,37 @@ levelplot(aster2[[15]],
           col.regions =  c("yellow","orange","red"),
           margin = FALSE,
           at = breaks)
+
+
+#lets replot the advanced argillic alteration with the mask
+
+#turning into raster format
+mask <- raster(mask)
+
+# Reclassify FALSE values to NA
+mask <- raster::reclassify(mask, cbind(FALSE, NA))
+
+#turning argillic rgb into own raster
+argillic = stack(aster2)
+
+# Use the mask function
+argillic_masked <- terra::mask(argillic, mask)
+
+#turning back into rast
+argillic_masked <- stack(argillic_masked)
+
+plotRGB(argillic_masked,18,16,17,stretch = "lin")
+
+
+
+# lets redo the kaolinite, sericite, chlorite and epidoteminerals,
+#setting breaks
+breaks <- c(2.045,2.06,2.07,2.5)
+
+levelplot(aster2[[15]], 
+          colorkey=FALSE,
+          col.regions =  c("yellow","orange","red"),
+          margin = FALSE,
+          at = breaks)
+
+

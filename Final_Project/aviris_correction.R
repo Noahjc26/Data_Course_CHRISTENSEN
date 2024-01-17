@@ -19,7 +19,7 @@ library(e1071)
 library(randomForest)
 
 #rasterizing aviris imagery
-aviris <- stack("../../AVIRIS/1999/f991017t01p02_r11c/f991017t01p02_r11rdn_a_img")
+aviris <- rast("../../AVIRIS/1999/f991017t01p02_r11c/f991017t01p02_r11rdn_a_img")
 
 plot(aviris[[50]])
 
