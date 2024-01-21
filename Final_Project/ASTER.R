@@ -28,6 +28,7 @@ band8 <- rast(tif_files[5]) %>% rectify() %>% crop(e) %>% resample(band1)
 band9 <- rast(tif_files[6]) %>% rectify() %>% crop(e) %>% resample(band1)
 
 
+#gain data found in HDF file
 #ASTER Gains 01 HGH, 02 HGH, 3N NOR, 04 NOR, 05 NOR, 06 NOR, 07 NOR, 08 NOR, 09 NOR
 #DN to spectral radiance
 band1 = (band1-1)*0.676

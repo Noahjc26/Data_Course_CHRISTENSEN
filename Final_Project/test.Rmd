@@ -1,0 +1,49 @@
+---
+title: "Noah Christensen's CV"
+author: Noah Christensen
+date: "`r Sys.Date()`"
+output:
+  pagedown::html_resume:
+    css: ['custom_resume.css']
+    self_contained: true
+knit: pagedown::chrome_print
+---
+
+Aside
+================================================================================
+
+Contact Info {#contact}
+--------------------------------------------------------------------------------
+
+- <i class="fas fa-envelope"></i> noahjchristensen5@gmail.com
+- <i class="fab fa-github"></i> [github.com/noahjc26](https://github.com/noahjc26)
+- <i class="fas fa-home"></i> [noahjc26.github.io](https://noahjc26.github.io)
+
+Skills {#skills}
+--------------------------------------------------------------------------------
+
+- #### <i class="fas fa-laptop"></i> Computational:
+
+  - **R**
+  - **EXCEL**
+  - **ArcGIS**
+  - **QGIS**
+
+Main
+================================================================================
+
+Noah Christensen {#title}
+--------------------------------------------------------------------------------
+
+Pleasant Grove, UT
+
+Education {data-icon=graduation-cap data-concise=true}
+--------------------------------------------------------------------------------
+
+### Utah Valley University
+
+B.S. in Geology, GIS certificate
+
+Orem, UT
+
+2024 - 2019
