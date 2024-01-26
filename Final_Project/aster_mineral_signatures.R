@@ -45,7 +45,7 @@ aster_band_info$wavelength = (aster_band_info$lower+aster_band_info$upper)/2
 
 #adding wavelength as a column
 minerals <- minerals %>% 
-  mutate(wavelength = aster_band_info$Wavelength_nm)
+  mutate(wavelength = aster_band_info$wavelength)
 
 # Identify columns with negative values
 neg_cols <- sapply(minerals, function(x) any(x < 0))
@@ -59,6 +59,11 @@ plot <- ggplot(data_subset_aster, aes(x=wavelength)) +
   geom_line(color="darkgreen",aes(y=data_subset_aster$'1789_kaolinite'),size=1) +
   geom_line(color="orange",aes(y=data_subset_aster$'1052_dickite'),size=1) +
   geom_line(color="purple",aes(y=data_subset_aster$'689_calcite'),size=1) +
+  geom_point(color="white", aes(y=data_subset_aster$'805_chlorite'),size=3) +
+  geom_point(color="white", aes(y=data_subset_aster$'222_alunite'),size=3) +
+  geom_point(color="white",aes(y=data_subset_aster$'1789_kaolinite'),size=3) +
+  geom_point(color="white",aes(y=data_subset_aster$'1052_dickite'),size=3) +
+  geom_point(color="white",aes(y=data_subset_aster$'689_calcite'),size=3) +
   ylim(0,1) +
   xlim(420,2500) +
   labs(y="Reflectance",

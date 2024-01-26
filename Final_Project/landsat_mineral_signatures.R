@@ -54,11 +54,16 @@ neg_cols <- sapply(minerals, function(x) any(x < 0))
 data_subset_landsat <- minerals[, !neg_cols]
 
 plot <- ggplot(data_subset_landsat, aes(x=wavelength)) +
-  geom_line(color="blue", aes(y=data_subset_landsat$'832_chlorite'),size=1) +
-  geom_line(color="red", aes(y=data_subset_landsat$'250_alunite'),size=1) +
-  geom_line(color="darkgreen",aes(y=data_subset_landsat$'1817_kaolinite'),size=1) +
-  geom_line(color="orange",aes(y=data_subset_landsat$'1080_dickite'),size=1) +
-  geom_line(color="purple",aes(y=data_subset_landsat$'717_calcite'),size=1) +
+  geom_line(color="blue", aes(y=data_subset_landsat$'832_chlorite'),size=1.5) +
+  geom_line(color="red", aes(y=data_subset_landsat$'250_alunite'),size=1.5) +
+  geom_line(color="darkgreen",aes(y=data_subset_landsat$'1817_kaolinite'),size=1.5) +
+  geom_line(color="orange",aes(y=data_subset_landsat$'1080_dickite'),size=1.5) +
+  geom_line(color="purple",aes(y=data_subset_landsat$'717_calcite'),size=1.5) +
+  geom_point(color="white", aes(y=data_subset_landsat$'832_chlorite'),size=1.5) +
+  geom_point(color="white", aes(y=data_subset_landsat$'250_alunite'),size=1.5) +
+  geom_point(color="white",aes(y=data_subset_landsat$'1817_kaolinite'),size=1.5) +
+  geom_point(color="white",aes(y=data_subset_landsat$'1080_dickite'),size=1.5) +
+  geom_point(color="white",aes(y=data_subset_landsat$'717_calcite'),size=1.5) +
   ylim(0,1) +
   xlim(420,2500) +
   labs(y="Reflectance",

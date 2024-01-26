@@ -5,6 +5,8 @@ library(viridis)
 library(terra)
 library(randomForest)
 library(e1071)
+library(caret)
+library(rpart)
 
 #grabbing all aster files
 directory_path <- "../../ASTER/2005_10_01/AST_L1B_00310012005182513_20231130134446_13225/"
@@ -276,10 +278,31 @@ plotRGB(argillic_masked,18,16,17,stretch = "lin")
 
 
 # lets redo the kaolinite, sericite, chlorite and epidoteminerals,
+
+#turning into raster format
+mask <- raster("../../ASTER/hydrothermal_alteration_mask.tif")
+
+# Reclassify FALSE values to NA
+mask <- raster::reclassify(mask, cbind(FALSE, NA))
+
+#turning argillic rgb into own raster
+kaolinite = stack(aster2)
+
+# Use the mask function
+kaolinite_masked <- terra::mask(kaolinite, mask)
+
+#turning back into rast
+kaolinite_masked <- stack(kaolinite_masked)
+
+kaolinite_masked[[15]]
+
+
+
+# lets redo the kaolinite, sericite, chlorite and epidoteminerals,
 #setting breaks
 breaks <- c(2.045,2.06,2.07,2.5)
 
-levelplot(aster2[[15]], 
+levelplot(kaolinite_masked[[15]], 
           colorkey=FALSE,
           col.regions =  c("yellow","orange","red"),
           margin = FALSE,
