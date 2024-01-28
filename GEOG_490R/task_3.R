@@ -53,11 +53,20 @@ phones <- c("(525) 692-8788", "(748) 654-2046", "(865) 970-8066", "(310) 472-400
             "615-508-4357", "112-407-4979", "168-377-4229", "994-188-6602",
             "123-456-789", "abc-123-4567", "123 45 6789", "1a2b3c4d5e", 
             "12345", "67890", "1234", "6789", "12345678903", "12345678901")
+
 # With the emails vector, write a function to identify only valid email addresses containing exactly one @ symbol and at least one period using regular expression. (can use grep() or another)
 
+?grep
+length(emails)
+grep("@",emails)
+grep(".",emails)
+
+
+valid_emails <- emails[]
 
 # Using the phones vector, write a regular expression pattern to identify all valid 10-digit phone numbers in the phones vector, regardless of how they are formatted with parentheses, spaces, dots, etc. (Tip: consider the format of different 10-digit numbers and account for optional non-digit characters, 3 digits, optional non-digits, 3 digits, optional non-digits, and 4 digits) - advanced students should write a script to check to try and double check that their responses are valid.
-# 
+
+
 # Subset all valid phone numbers that contain the format XXX-XXX-XXXX and replace the “-” with “_” using gsub or other function.
 # 
 # 2. Snotel data
