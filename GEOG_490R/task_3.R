@@ -1,7 +1,5 @@
-
+##### Part 1 #####
 # 1. Data types and structures
-
-#Using the start (Jan, 8) and end (April, 23) dates of the spring 2024 semester, answer questions 1-3:
   
 # Find the number of days in the semester.
 start_date <-  as.Date("01/08/2024",tryFormats = "%m/%d/%Y")
@@ -22,9 +20,6 @@ meeting_days <- all_dates[weekdays(all_dates) == "Tuesday" | weekdays(all_dates)
 
 #This is how many hours we will meet throughout the semester
 length(meeting_days) * 3
-
-
-#Use regular expression and the following two vectors to respond to questions 4-5:
   
 # emails
 emails <- c("w2u9q0g7z6@outlook.com", "m7n4w6f1a0@outlook.com", "withspaces@gmail.com",  
@@ -45,6 +40,14 @@ emails <- c("w2u9q0g7z6@outlook.com", "m7n4w6f1a0@outlook.com", "withspaces@gmai
               "f9d7u5e1n8@outlook.com", "n9o4s8a6b0@yahoo.com", "@invalid",
               "s1b8q5i9z2@gmail.com", "z7v3n1o0f9@outlook.com")
 
+#creating new vector with emails that contain the @ sign
+emails_with_at_sign <- emails[grep("@",emails)]
+
+#using the @ sign vector and keeping only the emails with .com
+valid_emails <- emails_with_at_sign[grep(".com",emails_with_at_sign)]
+
+valid_emails
+
 # phone numbers
 phones <- c("(525) 692-8788", "(748) 654-2046", "(865) 970-8066", "(310) 472-4003", 
             "(689) 943-4206", "920.680.4936", "323.171.5088", "265.687.3906", 
@@ -54,45 +57,129 @@ phones <- c("(525) 692-8788", "(748) 654-2046", "(865) 970-8066", "(310) 472-400
             "123-456-789", "abc-123-4567", "123 45 6789", "1a2b3c4d5e", 
             "12345", "67890", "1234", "6789", "12345678903", "12345678901")
 
-# With the emails vector, write a function to identify only valid email addresses containing exactly one @ symbol and at least one period using regular expression. (can use grep() or another)
+#cleaning up phone numbers
+#removing hyphens
+phones <- gsub("-","", phones)
 
-?grep
-length(emails)
-grep("@",emails)
-grep(".",emails)
+#removing dots
+phones <- gsub("\\.","",phones)
+
+#removing parenthesis
+phones <- gsub("[()]","",phones)
+
+#removing spaces
+phones <- gsub(" ","",phones)
+
+#replacing any a,b,or c with 2
+phones <- gsub("[abc]","2",phones)
+
+#replacing any d,e,or f with 3
+phones <- gsub("[def]","3",phones)
+
+#replacing any g,h,or i with 4
+phones <- gsub("[ghi]","4",phones)
+
+#replacing any j,k or l with 5
+phones <- gsub("[jkl]","5",phones)
+
+#replacing any m,n,or o with 6
+phones <- gsub("[mno]","6",phones)
+
+#replacing any p,q,r,or s with 7
+phones <- gsub("[pqrs]","7",phones)
+
+#replacing any t,u,v with 8
+phones <- gsub("[tuv]","8",phones)
+
+#replacing any w,x,y,or z with 9
+phones <- gsub("[wxyz]","9",phones)
+
+#use nchar function which tells the number of characters for each element in the vector
+character_lengths <- nchar(phones)
+
+#subset to keep only elements with 10 characters
+valid_phones <- phones[character_lengths == 10]
+
+valid_phones
+
+#adding underscores after the first 3 and the first 6 characters
+valid_phones <- gsub("^(.{3})(.{3})", "\\1_\\2_", valid_phones)
+
+valid_phones
+
+#checking in phone numbers are valid
+
+#making a pattern that is xxx_xxx_xxxx
+pattern <- "^\\d{3}_\\d{3}_\\d{4}$"
+
+#using grepl to see boolean values if they follow that pattern
+grepl(pattern, valid_phones)
 
 
-valid_emails <- emails[]
+##### Part 2 #####
+#2. Snotel data
 
-# Using the phones vector, write a regular expression pattern to identify all valid 10-digit phone numbers in the phones vector, regardless of how they are formatted with parentheses, spaces, dots, etc. (Tip: consider the format of different 10-digit numbers and account for optional non-digit characters, 3 digits, optional non-digits, 3 digits, optional non-digits, and 4 digits) - advanced students should write a script to check to try and double check that their responses are valid.
+# Read in csv file provided in canvas
+snotel <- read.csv("./snotel820_timp.csv")
 
+# After reading in the data, convert dates column to a date format
+snotel$date <- as.Date(snotel$date)
 
-# Subset all valid phone numbers that contain the format XXX-XXX-XXXX and replace the “-” with “_” using gsub or other function.
-# 
-# 2. Snotel data
-# 
-# Read in csv file provided in canvas. This file contains daily snow and meteorological data for 30 days from December, 24, 2023 to January, 22 2024 collected at the snow telemetry station at the Timpanogos Divide.
-# 
-# After reading in the data, convert dates column to a date format and . Precipitation and Snow Water Equivalent units are in inches.
-# 
-# For context, snow water equivalent is the amount of water in the snowpack or a volume of snow and is calculated by multiplying the snow density (ρ) by depth (d):
-#   
-#   SWE=ρ∗d
-# a brief explanation of other variables are also listed:
-#   
-#   date - Date string corresponding to local time
-# swe - Snow water equivalent at the start of the day (inches)
-# swe_med - Historical median swe at the start of the day for 1991-2020 (inches)
-# depth - Snow depth (inches)
-# prec_accum - Total accumulated (cumulative) water for current water year (Oct 1st) (inches)
-# prec_med - historical median prec_accum for 1991-2020 (inches)
-# t_max - Air temperature maximum of the day (oF)
-# t_min - Air temperature minimum of the day (oF)
-# t_ave - Air temperature average of the day (oF)
-# Respond to the following questions:
-#   
-#   Use the equation above to estimate the density of the snowpack each day, add this as a new column to your DataFrame. List the average and standard deviation of the following: snow density (in percent), snow depth, and average temperature. Also list the snow warmest and coldest temperature recorded during the time period. Concatenate this information into a single print or cat statement.
-# 
+#estimating the density of the snowpack each day
+snotel$density = snotel$swe/snotel$depth
+
+# List the average and standard deviation of the following: 
+#snow density (in percent)
+mean_density <- round((mean(snotel$density) * 100), 2)
+sd_density <- round((sd(snotel$density) * 100), 2)
+
+#snow depth
+mean_depth <- round((mean(snotel$depth)),2)
+sd_depth <- round((sd(snotel$depth)),2)
+
+#average temperature
+mean_ave_temp <- round((mean(na.omit(snotel$t_ave))),2)
+sd_ave_temp <- round((sd(na.omit(snotel$t_ave))),2)
+
+#warmest and coldest temperature recorded during the time period
+max_temp <- max(na.omit(snotel$t_max))
+min_temp <- min(na.omit(snotel$t_min))
+
+#Concatenate this information into a single print or cat statement
+statement <- paste0("Density Average = ",
+                    mean_density,
+                    "%",
+                    "\n",
+                    "Density Standard Deviation = ",
+                    sd_density,
+                    "%",
+                    "\n",
+                    "Depth Average = ",
+                    mean_depth,
+                    '"',
+                    "\n",
+                    "Depth Standard Deviation = ",
+                    sd_depth,
+                    '"',
+                    "\n",
+                    "Temperature Average = ",
+                    mean_ave_temp,
+                    "°F",
+                    "\n",
+                    "Temperature Standard Deviation = ",
+                    sd_ave_temp,
+                    "°F",
+                    "\n",
+                    "Max Temperature Recorded = ",
+                    max_temp,
+                    "°F7",
+                    "\n",
+                    "Minimum Temperature Recorded = ",
+                    min_temp,
+                    "°F")
+
+cat(statement)
+
 # How do density and snow depth vary over time? Create a single plot showing both snow depth and density as a function of time. Note you can use the lines() or points() functions to add more to an existing scatter/line plot. What day seems to mark the transition from clear to stormy weather?
 #   
 #   Is there a correlation between snow water equivalent and precipitation accumulation? Describe the strength and direction of any relationship.

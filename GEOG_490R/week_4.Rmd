@@ -1,0 +1,17 @@
+---
+title: "Week 4 stuff"
+output: html_document
+date: "2024-01-30"
+---
+
+### 1. RegEx Basics
+
+Regular expression 
+```{r}
+string <- c("abc1","XYZ","AbC123","1ABAS","per.")
+grepl("\\.",string)
+
+grep("\\b[0-9]\\b",string)
+
+```
+
