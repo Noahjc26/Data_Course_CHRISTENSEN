@@ -47,6 +47,12 @@ table_2$area_acres <- as.numeric(gsub(",", "", table_2$area_acres))
 # turning visitors column into numeric
 table_2$recreation_visitors_2022_11 <- as.numeric(gsub(",", "", table_2$recreation_visitors_2022_11))
 
+table_2 %>% 
+ggplot(aes(x=date_established_as_park_12,y=recreation_visitors_2022_11, fill = area_acres)) +
+  geom_point()
+
+
+
 # 4
 #showing the average acres in the area
 paste(mean(table_2$area_acres), "acres")

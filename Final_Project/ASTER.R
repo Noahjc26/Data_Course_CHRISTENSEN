@@ -164,7 +164,6 @@ plotRGB(cropped_masked, r=1,g=2,b=3, main = "Original RGB",stretch="lin")
 
 
 
-
 aster <- cropped_masked
 
 

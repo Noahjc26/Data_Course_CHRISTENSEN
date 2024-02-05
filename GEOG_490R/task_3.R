@@ -20,7 +20,7 @@ meeting_days <- all_dates[weekdays(all_dates) == "Tuesday" | weekdays(all_dates)
 
 #This is how many hours we will meet throughout the semester
 length(meeting_days) * 3
-  
+
 # emails
 emails <- c("w2u9q0g7z6@outlook.com", "m7n4w6f1a0@outlook.com", "withspaces@gmail.com",  
               "n7y4h5k0t6@gmail.com", "@invalid", "e2m5h7q1z0@outlook.com", 
@@ -126,12 +126,12 @@ snotel <- read.csv("./snotel820_timp.csv")
 snotel$date <- as.Date(snotel$date)
 
 #estimating the density of the snowpack each day
-snotel$density = snotel$swe/snotel$depth
+snotel$density = snotel$swe/snotel$depth * 100
 
 # List the average and standard deviation of the following: 
 #snow density (in percent)
-mean_density <- round((mean(snotel$density) * 100), 2)
-sd_density <- round((sd(snotel$density) * 100), 2)
+mean_density <- round((mean(snotel$density)), 2)
+sd_density <- round((sd(snotel$density)), 2)
 
 #snow depth
 mean_depth <- round((mean(snotel$depth)),2)
@@ -146,62 +146,125 @@ max_temp <- max(na.omit(snotel$t_max))
 min_temp <- min(na.omit(snotel$t_min))
 
 #Concatenate this information into a single print or cat statement
-statement <- paste0("Density Average = ",
-                    mean_density,
-                    "%",
+cat("Density Average = ", mean_density, "%",
                     "\n",
-                    "Density Standard Deviation = ",
-                    sd_density,
-                    "%",
+                    "Density Standard Deviation = ", sd_density, "%",
                     "\n",
-                    "Depth Average = ",
-                    mean_depth,
-                    '"',
+                    "Depth Average = ", mean_depth, '"',
                     "\n",
-                    "Depth Standard Deviation = ",
-                    sd_depth,
-                    '"',
+                    "Depth Standard Deviation = ", sd_depth,'"',
                     "\n",
-                    "Temperature Average = ",
-                    mean_ave_temp,
-                    "°F",
+                    "Temperature Average = ", mean_ave_temp, "°F",
                     "\n",
-                    "Temperature Standard Deviation = ",
-                    sd_ave_temp,
-                    "°F",
+                    "Temperature Standard Deviation = ", sd_ave_temp, "°F",
                     "\n",
-                    "Max Temperature Recorded = ",
-                    max_temp,
-                    "°F7",
+                    "Max Temperature Recorded = ", max_temp, "°F",
                     "\n",
-                    "Minimum Temperature Recorded = ",
-                    min_temp,
-                    "°F")
+                    "Minimum Temperature Recorded = ", min_temp, "°F")
 
-cat(statement)
+# How do density and snow depth vary over time? Create a single plot showing both snow depth and density as a function of time. 
+#Note you can use the lines() or points() functions to add more to an existing scatter/line plot. 
+plot(snotel$date,snotel$depth)
 
-# How do density and snow depth vary over time? Create a single plot showing both snow depth and density as a function of time. Note you can use the lines() or points() functions to add more to an existing scatter/line plot. What day seems to mark the transition from clear to stormy weather?
-#   
-#   Is there a correlation between snow water equivalent and precipitation accumulation? Describe the strength and direction of any relationship.
-# 
+lines(snotel$date,snotel$density,col="red")
+
+# Setting the larger right margin
+#First value is the bottom line
+#second value is the left line
+#third value is the top line
+#fourth value is the right line
+par(mar = c(5, 5, 5, 5))
+
+plot(snotel$date,
+     snotel$depth,
+     col = "blue",
+     xlab = "Date",
+     ylab = "Depth (inches)",
+     ylim = c(min(snotel$depth), max(snotel$depth)),
+     type = "l")
+
+title(main = "Depth and Density Over Time")
+axis(2, col.axis = "blue")
+
+par(new = TRUE)
+
+plot(snotel$date,
+     snotel$density,
+     col = "red",
+     xlab = "",
+     ylab = "",axes = FALSE,
+     type = "l")
+
+axis(4, col.axis = "red")
+mtext("Density (percentage)", side = 4, line = 2.5, col = "red",)
+
+
+
+#What day seems to mark the transition from clear to stormy weather?
+#looking at the graph, jan 4th seems to be the day
+
+#Is there a correlation between snow water equivalent and precipitation accumulation? Describe the strength and direction of any relationship.
+plot(snotel$swe,
+     snotel$prec_accum)
+
+model <- lm(snotel$swe ~ snotel$prec_accum)
+
+strength <- round(as.numeric(model$coefficients[2]),3)
+
+paste0("Positive correlation of ", strength, " when comparing swe to precipitation accumulation")
+
 # Create a new column called swe_perc showing the snow water equivalent as a percent of the median historical swe value for each day. Plot these values and describe how the swe values track with the median historical values?
-#   
+
+snotel$swe_perc <- snotel$swe/snotel$swe_med * 100
+plot(snotel$date,snotel$swe_perc)
+
 #   How much snow (depth) was gained or lost from the start to end of time period? How much snow water equivalent was gained or lost?
-#   
+
+max_day_df <- snotel[(snotel$date == max(snotel$date)),]
+min_day_df <- snotel[(snotel$date == min(snotel$date)),]
+
+max_day_df$depth - min_day_df$depth
+max_day_df$swe - min_day_df$swe
+
 #   Write a script to calculate the daily incremental change in both snow depth and SWE over the 30 day period. Sum both the gains and losses from each and compare these values to the values in the previous question. What might account for the differences?
-#   
+differences = NULL
+
+for (i in 1:(length(snotel$depth) - 1)) {
+  diff = snotel$depth[i+1]-snotel$depth[i]
+  print(diff)
+  differences <- c(differences, diff)
+}
+
+sum(differences)
+
+
+differences2 = NULL
+
+for (i in 1:(length(snotel$swe) - 1)) {
+  diff2 = snotel$swe[i+1]-snotel$swe[i]
+  print(diff2)
+  differences2 <- c(differences2, diff2)
+}
+
+sum(differences2)
+
+
 #   Is there a relationship between air temperature and snow depth? Run a linear model, plot the results (showing scatterplot and linear model), and report the R2 and p-value. Run a correlation test as well.
-# 
+plot(snotel$t_ave,snotel$depth)
+lm(snotel$t_ave~snotel$depth)
+
 # Create a new DataFrame that is a subset of this data and only include dates after the storms arrived (i.e. keep days after new snow started accumulating). Run the same tests as in the previous question and compare the statistical strength. How has the relationship changed at all?
-#   
-#   Assess the relationship between snow density and temperature, as well as any other variables you think might relate to one another. Describe any patterns or relationships you notice in your initial analysis of this dataset. Advanced students should try multiple linear regression.
-# 
-# 
-# 
-# Submitting
-# 
-# Upload either a single document showing code, responses, and plots… or a separate R script with a word doc or pdf containing all plots and responses. Be sure to support your responses with stand-alone code. Comment out any text and annotate each step well.
-# 
-# Please reach out if you have any questions or concerns!
-#   
-#   This assignment is due in one week but may be turned for an additional week with a late penalty of -5%
+sub_snotel = snotel[snotel$date >= as.Date("2024/1/04"),]
+
+plot(sub_snotel$t_ave,sub_snotel$depth)
+lm(sub_snotel$t_ave~sub_snotel$depth)
+
+# Assess the relationship between snow density and temperature, as well as any other variables you think might relate to one another. Describe any patterns or relationships you notice in your initial analysis of this dataset. Advanced students should try multiple linear regression.
+library(ggplot2)
+
+linear_model <- (lm(snotel$t_ave~snotel$density))
+plot(snotel$t_ave,snotel$density)
+abline(linear_model,col = "green")
+
+summary(linear_model)
+

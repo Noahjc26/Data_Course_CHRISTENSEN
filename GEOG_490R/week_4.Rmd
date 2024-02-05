@@ -13,5 +13,23 @@ grepl("\\.",string)
 
 grep("\\b[0-9]\\b",string)
 
+library(rvest)
+
+# Reading in the table from Wikipedia
+
+page=read_html("https://en.wikipedia.org/wiki/List_of_national_parks_of_the_United_States")
+
+# Obtain the piece of the web page that corresponds to the "wikitable" node
+
+table = html_node(page, ".wikitable")
+
+# Convert the html table element into a data frame
+
+table = html_table(table, fill = TRUE)
+
+library(tidyverse)
+
+glimpse(table)
+
 ```
 
