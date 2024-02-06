@@ -1,7 +1,19 @@
+---
+title: "Case Study 1"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(shiny)
 library(tidyverse)
 library(Ternary)
+```
 
-#reading in data matrix
+Reading in QAP matrix:
+
+```{r}
 rock_comp <- matrix(c(43.18, 22.49, 34.33,  
                       8.19, 34.61, 57.20,
                       27.28, 55.12, 17.60,
@@ -28,14 +40,22 @@ rock_comp <- matrix(c(43.18, 22.49, 34.33,
                       45.33, 7.94, 46.73,
                       14.68, 35.34, 49.99),
                     nrow=25, ncol=3, byrow = TRUE)
+```
 
+
+I installed this Ternary package that I wanted to use just to see how it works, it's pretty simple!
+
+```{r}
 TernaryPlot(alab = expression(bold('Q')), 
             blab = expression(bold('A')),
             clab = expression(bold('P')))
-            
-            TernaryPoints(rock_comp, col='blue', pch=15, cex=0.5)
-            
-#turning into dataframe
+
+TernaryPoints(rock_comp, col='red', pch=15, cex=0.5)
+```
+
+I thought this would be easier if it was a dataframe so I turned it into a dataframe.
+
+```{r}
 rock_comp <- as.data.frame(rock_comp)
 
 #setting column names
@@ -44,7 +64,7 @@ colnames(rock_comp) <- c("Q","A","P")
 #creating new column that will be the class
 rock_comp$class = NA
 
-# Apply conditions
+#creating if else statements for each condition
 for (i in 1:nrow(rock_comp)) {
   if (rock_comp$Q[i] > 60) {
     rock_comp$class[i] <- NA
@@ -63,6 +83,13 @@ for (i in 1:nrow(rock_comp)) {
   }
 }
 
+print(rock_comp$class)
+```
+
+
+Let's plot the distribution of classes
+
+```{r}
 rock_comp %>% 
   ggplot(aes(x=class,fill=class)) +
   geom_bar() +
@@ -71,9 +98,15 @@ rock_comp %>%
        main = "") +
   theme_bw()
 
-#I think this solution is efficient and correct if you are looking for those six classifications, but if you are needing to split it into any further classifications there might be a better method for that.
+```
 
+I think this solution is efficient and correct if you are looking for those six classifications, but if you are needing to split it into any further classifications there might be a better method for that.
 
+---
+
+Moving onto the precipitation data, lets load it in and I wanted to create a column that is numeric months.
+
+```{r}
 precip_data <- data.frame(
   month = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
   year1 = c(3.879, 10.430, 6.991, 10.071, 17.864, 21.627, 20.853, 16.377, 10.000, 2.754, 3.507, 5.033),
@@ -84,13 +117,15 @@ precip_data <- data.frame(
   ave30 = c(4.491, 6.015, 9.719, 14.322, 17.637, 23.872, 20.194, 14.301, 9.587, 3.585, 2.633, 1.460)
 )
 
-
 month_names <- precip_data$month
 
 precip_data$month_numeric = c(1:12)
+```
 
-#creating new vector with months in each year above 30 year average and below 30 year average
+creating new vector with months above 30 year average for each year.
+Set the column as a color "blue" when true and "red" when false.
 
+```{r}
 for (i in 1:nrow(precip_data)) {
   if (precip_data$year1[i] > precip_data$ave30[i]) {
     precip_data$above1[i] = "blue"
@@ -118,8 +153,12 @@ for (i in 1:nrow(precip_data)) {
     precip_data$above5[i] = "red"
   }
 }
+```
 
 
+There's probably a better way to do this but this made sense to me.
+
+```{r}
 long_precip <- pivot_longer(precip_data, cols = c(starts_with("year"),"ave30"),
                             names_to = "year",
                             values_to = "precip")
@@ -127,7 +166,13 @@ long_precip <- pivot_longer(precip_data, cols = c(starts_with("year"),"ave30"),
 long_precip <- pivot_longer(long_precip, cols = starts_with("above"),
                             names_to = "above",
                             values_to = "color")
+print(long_precip)
+```
 
+
+Because I turned it into longer columns it didn't make sense to have the above value for each year that it wasn't correlated with so I remove any values in the color column if the above row didn't correlate with the year row.
+
+```{r}
 for (i in 1:nrow(long_precip)) {
   if (long_precip$year[i] == "year1" & long_precip$above[i] != "above1") {
     long_precip$color[i] = NA
@@ -149,24 +194,30 @@ for (i in 1:nrow(long_precip)) {
   }
 }
 
-
 #remove rows with NA values in the "color" column
 long_precip <- subset(long_precip, !is.na(color))
+```
 
+Let's get plotting now!
 
-ggplot(long_precip, aes(x = month_numeric, y = precip)) +
+```{r}
+long_precip %>% 
+ggplot(aes(x = month_numeric, y = precip)) +
   geom_line() +
   geom_point(aes(color = color)) +
   scale_color_manual(values = c("red" = "red", "blue" = "blue"),
                      labels = c("Above average 30", "Below average 30"),
                      name = "Above/Below") +
   facet_wrap(~year) +
-  scale_x_continuous(breaks = 1:12, labels = month_names) +
+  scale_x_continuous(breaks = 1:12, label = month_names) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
+```
 
-# 4 ####
+
+
+```{r}
 precip_data
 avg5 = NULL
 std_dev5 = NULL
@@ -210,7 +261,9 @@ precip_data %>%
                      name = "Average Precipitation",
                      labels = c("Average over 5 years", "Average over 30 years")) +
   theme_bw()
+```
 
+```{r}
 
 # 30 days of energy production (kWh)
 production <- c(1500, 1480, 1530, 1510, 1470, 1490, 1460, 1450, 1520, 1495,  
@@ -277,10 +330,8 @@ summary(production_model)
 # 5*1.141 increase in production with an increase in 5 degrees temperature
 
 
-solar_df %>% 
-  ggplot(aes(x=production,y=degrade)) +
-  geom_point()
-
-
 sum(solar_df$degrade_percent)
-#33.2 percent degradations
+#33.2 percent degradations total
+
+```
+
