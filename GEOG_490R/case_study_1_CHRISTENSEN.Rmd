@@ -4,14 +4,19 @@ output:
   html_document:
     code_folding: hide
 ---
-
+ 
+#### **Noah Christensen**
+## **Use show/hide button to see code**
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 library(shiny)
 library(tidyverse)
-library(Ternary)
 ```
 
-Reading in QAP matrix:
+<br>
+
+# Geology
+
+Lets start by reading in QAP matrix:
 
 ```{r}
 rock_comp <- matrix(c(43.18, 22.49, 34.33,  
@@ -43,16 +48,6 @@ rock_comp <- matrix(c(43.18, 22.49, 34.33,
 ```
 
 
-I installed this Ternary package that I wanted to use just to see how it works, it's pretty simple!
-
-```{r}
-TernaryPlot(alab = expression(bold('Q')), 
-            blab = expression(bold('A')),
-            clab = expression(bold('P')))
-
-TernaryPoints(rock_comp, col='red', pch=15, cex=0.5)
-```
-
 I thought this would be easier if it was a dataframe so I turned it into a dataframe.
 
 ```{r}
@@ -64,29 +59,43 @@ colnames(rock_comp) <- c("Q","A","P")
 #creating new column that will be the class
 rock_comp$class = NA
 
-#creating if else statements for each condition
-for (i in 1:nrow(rock_comp)) {
+#creating p ratio that is a percentage
+rock_comp$P_ratio <- (rock_comp$P/(rock_comp$A + rock_comp$P)) *100
+
+for (i in 1:nrow(rock_comp)){
+#this works on rocks above 60% quartz
   if (rock_comp$Q[i] > 60) {
     rock_comp$class[i] <- NA
-  } else if (rock_comp$P[i] >= 65 & rock_comp$Q[i] < 20) {
-    rock_comp$class[i] <- "andesite/basalt"
-  } else if (rock_comp$P[i] >= 65 & rock_comp$Q[i] > 20) {
-    rock_comp$class[i] <- "dacite"
-  } else if (rock_comp$P[i] < 65 & rock_comp$Q[i] < 20 & rock_comp$P[i] > 35){
-    rock_comp$class[i] <- "latite"
-  } else if (rock_comp$P[i] < 35 & rock_comp$Q[i] < 20){
-    rock_comp$class[i] <- "trachyte"
-  } else if (rock_comp$Q[i] > 20 & rock_comp$P[i] < 65){
+  } 
+  
+  
+#this works on rocks between 20 and 60% quartz
+  else if (rock_comp$Q[i] < 60 & rock_comp$Q[i] > 20) {
+    if (rock_comp$P_ratio[i] > 65) {
+      rock_comp$class[i] <- "dacite"
+    } 
+    else {
     rock_comp$class[i] <- "rhyolite"
-  } else {
-    rock_comp$class[i] <- "not classified"
+    }
+  } 
+  
+  
+#this works on rocks between 0 and 20% quartz
+  else if (rock_comp$Q[i] < 20){
+    if (rock_comp$P_ratio[i] > 65){
+      rock_comp$class[i] <- "andesite/basalt"
+    } 
+    else if (rock_comp$P_ratio[i] > 35 & rock_comp$P_ratio[i] < 65){
+      rock_comp$class[i] <- "latite"
+    } 
+    else {
+      rock_comp$class[i] <- "trachyte"
+    }
   }
 }
-
-print(rock_comp$class)
 ```
 
-
+## #1
 Let's plot the distribution of classes
 
 ```{r}
@@ -100,9 +109,14 @@ rock_comp %>%
 
 ```
 
+## #2
 I think this solution is efficient and correct if you are looking for those six classifications, but if you are needing to split it into any further classifications there might be a better method for that.
 
 ---
+
+# Geography
+
+## #3
 
 Moving onto the precipitation data, lets load it in and I wanted to create a column that is numeric months.
 
@@ -155,8 +169,6 @@ for (i in 1:nrow(precip_data)) {
 }
 ```
 
-
-There's probably a better way to do this but this made sense to me.
 
 ```{r}
 long_precip <- pivot_longer(precip_data, cols = c(starts_with("year"),"ave30"),
@@ -215,7 +227,7 @@ ggplot(aes(x = month_numeric, y = precip)) +
 
 ```
 
-
+## #4
 
 ```{r}
 precip_data
@@ -223,7 +235,6 @@ avg5 = NULL
 std_dev5 = NULL
 
 for (i in 1:nrow(precip_data)) {
-    
   average = 
     ((precip_data$year1[i] + 
     precip_data$year2[i] + 
@@ -263,8 +274,219 @@ precip_data %>%
   theme_bw()
 ```
 
-```{r}
+## #5
 
+
+---
+# Environmental Science
+
+## #6
+
+```{r}
+# Environmental Science
+river_df <- read.csv("./cs01_river_data.csv")
+
+#making date column in date format
+river_df$date <- as.Date(river_df$date)
+
+#making sure the dates are in order
+river_df <- river_df[order(river_df$date), ]
+
+nitrate_site_1 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site1",]
+nitrate_site_2 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site2",]
+nitrate_site_3 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site3",]
+nitrate_site_4 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site4",]
+
+#checking how many weeks were above nitrate standard for each site
+print(paste0("nitrate was above standard for ",nrow(nitrate_site_1)," week(s) at site 1"))
+print(paste0("nitrate was above standard for ",nrow(nitrate_site_2)," week(s) at site 2"))
+print(paste0("nitrate was above standard for ",nrow(nitrate_site_3)," week(s) at site 3"))
+print(paste0("nitrate was above standard for ",nrow(nitrate_site_4)," week(s) at site 4"))
+
+phosphate_site_1 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site1",]
+phosphate_site_2 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site2",]
+phosphate_site_3 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site3",]
+phosphate_site_4 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site4",]
+
+#checking how many weeks were above phosphate standard for each site
+print(paste0("phosphate was above standard for ",nrow(phosphate_site_1)," week(s) at site 1"))
+print(paste0("phosphate was above standard for ",nrow(phosphate_site_2)," week(s) at site 2"))
+print(paste0("phosphate was above standard for ",nrow(phosphate_site_3)," week(s) at site 3"))
+print(paste0("phosphate was above standard for ",nrow(phosphate_site_4)," week(s) at site 4"))
+
+both_site_1 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site1", ]
+both_site_2 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site2", ]
+both_site_3 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site3", ]
+both_site_4 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site4", ]
+
+#checking how many weeks were above phosphate and nitrate standard for each site
+print(paste0("nitrate AND phosphate were above standard for ",nrow(both_site_1)," week(s) at site 1"))
+print(paste0("nitrate AND phosphate were above standard for ",nrow(both_site_2)," week(s) at site 2"))
+print(paste0("nitrate AND phosphate were above standard for ",nrow(both_site_3)," week(s) at site 3"))
+print(paste0("nitrate AND phosphate were above standard for ",nrow(both_site_4)," week(s) at site 4"))
+
+```
+
+## #7
+
+```{r}
+#finding times where it occured for 3 consecutive weeks for nitrate/site1
+for (i in 1:(nrow(nitrate_site_1) - 2)) {
+    
+    start_date <- nitrate_site_1$date[i]
+    end_date <- nitrate_site_1$date[i + 2]
+    
+    if (end_date - start_date == 14) {
+      print(paste0("Three consecutive weeks of nitrate above standard found at site1:"))
+      print(paste("Start Date:", start_date))
+      print(paste("End Date:", end_date))
+      print("")
+    }
+}
+
+
+for (i in 1:(nrow(nitrate_site_3) - 2)) {
+  
+  start_date <- nitrate_site_3$date[i]
+  end_date <- nitrate_site_3$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of nitrate above standard found at site3:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(nitrate_site_4) - 2)) {
+  
+  start_date <- nitrate_site_4$date[i]
+  end_date <- nitrate_site_4$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of nitrate above standard found at site 4:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+#now with phosphate
+for (i in 1:(nrow(phosphate_site_1) - 2)) {
+  
+  start_date <- phosphate_site_1$date[i]
+  end_date <- phosphate_site_1$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate above standard found at site 1:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+
+for (i in 1:(nrow(phosphate_site_3) - 2)) {
+  
+  start_date <- phosphate_site_3$date[i]
+  end_date <- phosphate_site_3$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate above standard found at site 3:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(phosphate_site_4) - 2)) {
+  
+  start_date <- phosphate_site_4$date[i]
+  end_date <- phosphate_site_4$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate above standard found at site 4:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+
+#now for both sites
+for (i in 1:(nrow(both_site_1) - 2)) {
+  
+  start_date <- both_site_1$date[i]
+  end_date <- both_site_1$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 1:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+
+for (i in 1:(nrow(both_site_3) - 2)) {
+  
+  start_date <- both_site_3$date[i]
+  end_date <- both_site_3$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 3:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(both_site_4) - 2)) {
+  
+  start_date <- both_site_4$date[i]
+  end_date <- both_site_4$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 4:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+```
+
+## #8
+
+```{r}
+#8 
+river_df %>% 
+  ggplot(aes(x=date,y=nitrate,color = site_id)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = 0, ymax = nitrate,fill = site_id), alpha = 0.5) +
+  labs(title = "Nitrate Levels Over Time",
+       x = "Date",
+       y = "Nitrate") +
+  facet_wrap(~site_id) +
+  geom_line(y=5,linewidth = 1,color = "black") +
+  theme_bw()
+
+river_df %>% 
+  ggplot(aes(x=date,y=phosphate,color = site_id)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = 0, ymax = phosphate,fill = site_id), alpha = 0.5) +
+  labs(title = "Phosphate Levels Over Time",
+       x = "Date",
+       y = "Phosphate") +
+  facet_wrap(~site_id) +
+  geom_line(y=2,linewidth = 1,color = "black") +
+  theme_bw()
+```
+
+# Solar Farm Production Analyst
+
+## #9
+
+```{r}
 # 30 days of energy production (kWh)
 production <- c(1500, 1480, 1530, 1510, 1470, 1490, 1460, 1450, 1520, 1495,  
                 1510, 1520, 1500, 1490, 1540, 1560, 1480, 1470, 1500, 1480, 
@@ -300,7 +522,33 @@ for (i in 2:nrow(solar_df)) {
   solar_df$degrade_cumulative[i] = solar_df$degrade_cumulative[i-1] + solar_df$degrade_percent[i]
 }
 
+summary(solar_df)
+```
 
+## #10
+
+```{r}
+solar_df %>% 
+  ggplot(aes(x=production,y=irradiation)) +
+  geom_smooth(method = "lm") +
+  geom_point(color="red") +
+  theme_bw()
+```
+
+## #11
+
+```{r}
+model <- lm(solar_df$production~solar_df$temp + solar_df$irradiation)
+
+summary(model)
+
+```
+
+## #12
+5*1.141 increase in production with an increase in 5 degrees temperature
+
+## #13
+```{r}
 model <- lm(solar_df$production~solar_df$degrade_cumulative)
 
 summary(model)
@@ -315,23 +563,25 @@ head(solar_df)
 summary(solar_df)
 
 
-solar_df %>% 
-  ggplot(aes(x=production,y=irradiation)) +
-  geom_smooth(method = "lm") +
-  geom_point(color="red") +
-  theme_bw()
-
 #it seems to be a linear plot, albeit with a large SD
 
 production_model <- lm(solar_df$production ~ solar_df$temp + solar_df$irradiation)
 
 summary(production_model)
 
-# 5*1.141 increase in production with an increase in 5 degrees temperature
-
-
 sum(solar_df$degrade_percent)
 #33.2 percent degradations total
 
+
+
 ```
 
+## #14
+
+```{r}
+# 1 kWh = 0.0036 GJ
+#total production in GJ
+sum(solar_df$production) * 0.0036
+```
+
+## #15

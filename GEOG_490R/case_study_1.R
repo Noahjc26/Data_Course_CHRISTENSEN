@@ -63,6 +63,9 @@ for (i in 1:nrow(rock_comp)) {
   }
 }
 
+
+1:length(rock_comp)
+
 rock_comp %>% 
   ggplot(aes(x=class,fill=class)) +
   geom_bar() +
@@ -284,3 +287,238 @@ solar_df %>%
 
 sum(solar_df$degrade_percent)
 #33.2 percent degradations
+
+
+#total production in GJ
+sum(solar_df$production) * 0.0036
+
+
+
+# Environmental Science
+river_df <- read.csv("./cs01_river_data.csv")
+
+#making date column in date format
+river_df$date <- as.Date(river_df$date)
+
+#making sure the dates are in order
+river_df <- river_df[order(river_df$date), ]
+
+nitrate_site_1 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site1",]
+nitrate_site_2 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site2",]
+nitrate_site_3 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site3",]
+nitrate_site_4 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site4",]
+
+#checking how many weeks were above nitrate standard for each site
+nrow(nitrate_site_1)
+nrow(nitrate_site_2)
+nrow(nitrate_site_3)
+nrow(nitrate_site_4)
+
+phosphate_site_1 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site1",]
+phosphate_site_2 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site2",]
+phosphate_site_3 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site3",]
+phosphate_site_4 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site4",]
+
+#checking how many weeks were above phosphate standard for each site
+nrow(phosphate_site_1)
+nrow(phosphate_site_2)
+nrow(phosphate_site_3)
+nrow(phosphate_site_4)
+
+both_site_1 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site1", ]
+both_site_2 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site2", ]
+both_site_3 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site3", ]
+both_site_4 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site4", ]
+
+#checking how many weeks were above phosphate and nitrate standard for each site
+nrow(both_site_1)
+nrow(both_site_2)
+nrow(both_site_3)
+nrow(both_site_4)
+
+#finding times where it occured for 3 consecutive weeks for nitrate/site1
+
+
+
+for (i in 1:(nrow(nitrate_site_1) - 2)) {
+    
+    start_date <- nitrate_site_1$date[i]
+    end_date <- nitrate_site_1$date[i + 2]
+    
+    if (end_date - start_date == 14) {
+      print(paste0("Three consecutive weeks of nitrate above standard found at site1:"))
+      print(paste("Start Date:", start_date))
+      print(paste("End Date:", end_date))
+      print("")
+    }
+}
+
+for (i in 1:(nrow(nitrate_site_2) - 2)) {
+  
+  start_date <- nitrate_site_2$date[i]
+  end_date <- nitrate_site_2$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of nitrate above standard found at site2:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(nitrate_site_3) - 2)) {
+  
+  start_date <- nitrate_site_3$date[i]
+  end_date <- nitrate_site_3$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of nitrate above standard found at site3:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(nitrate_site_4) - 2)) {
+  
+  start_date <- nitrate_site_4$date[i]
+  end_date <- nitrate_site_4$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of nitrate above standard found at site 4:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+#now with phosphate
+for (i in 1:(nrow(phosphate_site_1) - 2)) {
+  
+  start_date <- phosphate_site_1$date[i]
+  end_date <- phosphate_site_1$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate above standard found at site 1:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(phosphate_site_2) - 2)) {
+  
+  start_date <- phosphate_site_2$date[i]
+  end_date <- phosphate_site_2$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate above standard found at site 2:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(phosphate_site_3) - 2)) {
+  
+  start_date <- phosphate_site_3$date[i]
+  end_date <- phosphate_site_3$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate above standard found at site 3:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(phosphate_site_4) - 2)) {
+  
+  start_date <- phosphate_site_4$date[i]
+  end_date <- phosphate_site_4$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate above standard found at site 4:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+
+#now for both sites
+for (i in 1:(nrow(both_site_1) - 2)) {
+  
+  start_date <- both_site_1$date[i]
+  end_date <- both_site_1$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 1:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(both_site_2) - 2)) {
+  
+  start_date <- both_site_2$date[i]
+  end_date <- both_site_2$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 2:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(both_site_3) - 2)) {
+  
+  start_date <- both_site_3$date[i]
+  end_date <- both_site_3$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 3:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+for (i in 1:(nrow(both_site_4) - 2)) {
+  
+  start_date <- both_site_4$date[i]
+  end_date <- both_site_4$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 4:"))
+    print(paste("Start Date:", start_date))
+    print(paste("End Date:", end_date))
+    print("")
+  }
+}
+
+
+#8 
+river_df %>% 
+  ggplot(aes(x=date,y=nitrate,color = site_id)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = 0, ymax = nitrate,fill = site_id), alpha = 0.5) +
+  labs(title = "Nitrate Levels Over Time",
+       x = "Date",
+       y = "Nitrate") +
+  facet_wrap(~site_id) +
+  geom_line(y=5,linewidth = 1,color = "black")
+  theme_bw()
+
+river_df %>% 
+  ggplot(aes(x=date,y=phosphate,color = site_id)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = 0, ymax = phosphate,fill = site_id), alpha = 0.5) +
+  labs(title = "Phosphate Levels Over Time",
+       x = "Date",
+       y = "Phosphate") +
+  facet_wrap(~site_id) +
+  geom_line(y=2,linewidth = 1,color = "black")
+  theme_bw()

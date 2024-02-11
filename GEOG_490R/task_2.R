@@ -41,6 +41,8 @@ table_2 <- table %>%
            sep = " ",
            into = "area_acres")
 
+table_2$date_established_as_park_12 = as.Date(table_2$date_established_as_park_12,tryFormats = "%b %d, %y")
+
 # turning area_acres column into numeric
 table_2$area_acres <- as.numeric(gsub(",", "", table_2$area_acres))
 
