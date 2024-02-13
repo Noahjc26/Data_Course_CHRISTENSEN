@@ -17,6 +17,7 @@ tif_files <- list.files(directory_path, pattern = "\\.tif$", full.names = TRUE)
 #setting extent
 e <- as(extent(360000, 390000, 4235000, 4265000),'SpatialPolygons')
 
+raster(band1)
 #turning into raster, rectifying, cropping, and aggregating
 band1 <- rast(tif_files[12]) %>% rectify() %>% crop(e) %>% aggregate(2)
 band2 <- rast(tif_files[13]) %>% rectify() %>% crop(e) %>% aggregate(2)

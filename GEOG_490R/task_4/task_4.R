@@ -2,7 +2,7 @@ library(tidyverse)
 
 #reading in dataframes
 state_elev <- read.csv("./task_4/messy_state_elev.csv")
-us_pop <- read.csv("./task_4/us-pop.csv")
+us_pop <- read.csv("./task_4/us-pop.csv",skip = 4)
 us_temp <- read.csv("./task_4/us-temp-dec-june.csv")
 
 ## #1
@@ -147,3 +147,89 @@ us_temp_long %>%
 
 ## #2
 ## #6
+
+#changing column names
+names(state_elev) <- c("state","max_elev_location","max_elev_county","max_elev_ft","min_elev_location","min_elev_county","min_elev_ft")
+
+#remove special characters
+#removing anything between the brackets AND the brackets
+state_elev$min_elev_ft <- gsub("\\{.*\\}","",state_elev$min_elev_ft)
+
+#replace Sea level with 0
+state_elev$min_elev_ft <- gsub("Sea level",0,state_elev$min_elev_ft)
+
+#replace Sea Level with 0
+state_elev$min_elev_ft <- gsub("Sea Level",0,state_elev$min_elev_ft)
+
+#removing commas
+state_elev$min_elev_ft <- gsub(",","",state_elev$min_elev_ft)
+
+#changing numeric columns to the correct class
+state_elev$min_elev_ft <- as.numeric(state_elev$min_elev_ft)
+
+
+#lets repeat these steps for the other elevation column
+#removing anything between the brackets AND the brackets
+state_elev$max_elev_ft <- gsub("\\{.*\\}","",state_elev$max_elev_ft)
+
+#removing commas
+state_elev$max_elev_ft<- gsub(",","",state_elev$max_elev_ft)
+
+#changing numeric columns to the correct class
+state_elev$max_elev_ft <- as.numeric(state_elev$max_elev_ft)
+
+#changing - - to NA
+state_elev[state_elev == "- -"] <- NA
+
+#making elevation range column
+state_elev$elev_range = state_elev$max_elev_ft - state_elev$min_elev_ft
+
+summary(state_elev)
+head(state_elev)
+
+## #3
+## #7
+#renaming X to state
+us_pop <- us_pop %>% 
+  rename(state = X)
+  
+#removing unnecessary bottom rows
+us_pop <- us_pop[1:57,]
+
+#removing commas through the entire dataframe
+us_pop <- mutate_all(us_pop, ~gsub(",", "", .))
+
+#turning all columns except the state into numeric
+us_pop[, 2:6] <- lapply(us_pop[, 2:6], as.numeric)
+us_pop
+
+#calculating percent change between each decade
+us_pop$percent_change_2020 = ((us_pop$Resident.Population.2020.Census /us_pop$Resident.Population.2010.Census)-1) * 100
+us_pop$percent_change_2010 = ((us_pop$Resident.Population.2010.Census /us_pop$Resident.Population.2000.Census)-1) * 100
+us_pop$percent_change_2000 = ((us_pop$Resident.Population.2000.Census /us_pop$Resident.Population.1990.Census)-1) * 100
+us_pop$percent_change_1990 = ((us_pop$Resident.Population.1990.Census /us_pop$Resident.Population.1980.Census)-1) * 100
+
+#looking at 10 max percentage changes and the states
+us_pop[order(us_pop$percent_change_2020, decreasing = TRUE), ][1:10,c(1,7)]
+
+## #8
+pop_elev <- full_join(us_pop,state_elev)
+
+pop_elev %>%
+  ggplot(aes(x = percent_change_2020, y = elev_range)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "red") +  # Add linear model line
+  theme_bw() +
+  labs(x="Percent change from 2010 to 2020",
+       y="Elevation range from lowest to highest point")
+
+#creating the linear model to look at the numbers
+model <- lm(percent_change_2020 ~ elev_range, data = pop_elev)
+summary(model)
+
+## #9
+states_to_exclude <- c("Alaska", "California", "Delaware", "District of Columbia", "Florida", "Hawaii", "New Mexico", "North Dakota", "Puerto Rico", "West Virginia", "Wyoming")
+
+filtered_pop_elev <- pop_elev %>%
+  filter(!state %in% states_to_exclude)
+

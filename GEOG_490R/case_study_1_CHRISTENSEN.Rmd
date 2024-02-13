@@ -6,7 +6,7 @@ output:
 ---
  
 #### **Noah Christensen**
-## **Use show/hide button to see code**
+
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 library(shiny)
 library(tidyverse)
@@ -47,8 +47,9 @@ rock_comp <- matrix(c(43.18, 22.49, 34.33,
                     nrow=25, ncol=3, byrow = TRUE)
 ```
 
+## #1
 
-I thought this would be easier if it was a dataframe so I turned it into a dataframe.
+To start, I thought this would be easier if it was a dataframe so I turned it into a dataframe.
 
 ```{r}
 rock_comp <- as.data.frame(rock_comp)
@@ -94,8 +95,6 @@ for (i in 1:nrow(rock_comp)){
   }
 }
 ```
-
-## #1
 Let's plot the distribution of classes
 
 ```{r}
@@ -110,7 +109,8 @@ rock_comp %>%
 ```
 
 ## #2
-I think this solution is efficient and correct if you are looking for those six classifications, but if you are needing to split it into any further classifications there might be a better method for that.
+
+I think this solution is efficient and correct if you are looking for those six classifications, it first splits into the three *if statements* for Q values and then proceeds to deal with the A and P values
 
 ---
 
@@ -178,7 +178,6 @@ long_precip <- pivot_longer(precip_data, cols = c(starts_with("year"),"ave30"),
 long_precip <- pivot_longer(long_precip, cols = starts_with("above"),
                             names_to = "above",
                             values_to = "color")
-print(long_precip)
 ```
 
 
@@ -223,14 +222,17 @@ ggplot(aes(x = month_numeric, y = precip)) +
   facet_wrap(~year) +
   scale_x_continuous(breaks = 1:12, label = month_names) +
   theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x="Month",
+       y="precipitation (inches)")
 
 ```
 
 ## #4
 
-```{r}
-precip_data
+Let's look at the standard deviation based on the month for these 5 years:
+
+```{r message=FALSE, warning=FALSE}
 avg5 = NULL
 std_dev5 = NULL
 
@@ -260,9 +262,17 @@ precip_data %>%
   ggplot(aes(x=month_numeric,y=std_dev5)) +
   geom_point() +
   scale_x_continuous(breaks = 1:12, labels = month_names) +
-  theme_bw()
+  theme_bw() +
+  labs(x="Month",
+         y="Standard Deviation (inches)")
 #september has the highest standard deviation
+```
 
+September has the highest standard deviation and may has the lowest
+
+Now let's look at the average over the 5 years compared to the average over the 30 years:
+
+```{r message=FALSE, warning=FALSE}
 precip_data %>% 
   ggplot(aes(x=month_numeric)) +
   geom_line(aes(y=precip_data$avg5, color = "blue")) +
@@ -271,7 +281,9 @@ precip_data %>%
   scale_color_manual(values = c("blue", "green"), 
                      name = "Average Precipitation",
                      labels = c("Average over 5 years", "Average over 30 years")) +
-  theme_bw()
+  theme_bw() +
+  labs(x="Month",
+       y="precipitation (inches)")
 ```
 
 ## #5
@@ -298,10 +310,12 @@ nitrate_site_3 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site3",]
 nitrate_site_4 <- river_df[river_df$nitrate > 5 & river_df$site_id == "site4",]
 
 #checking how many weeks were above nitrate standard for each site
-print(paste0("nitrate was above standard for ",nrow(nitrate_site_1)," week(s) at site 1"))
-print(paste0("nitrate was above standard for ",nrow(nitrate_site_2)," week(s) at site 2"))
-print(paste0("nitrate was above standard for ",nrow(nitrate_site_3)," week(s) at site 3"))
-print(paste0("nitrate was above standard for ",nrow(nitrate_site_4)," week(s) at site 4"))
+output <- c((paste0("nitrate was above standard for ",nrow(nitrate_site_1)," week(s) at site 1")),
+(paste0("nitrate was above standard for ",nrow(nitrate_site_2)," week(s) at site 2")),
+(paste0("nitrate was above standard for ",nrow(nitrate_site_3)," week(s) at site 3")),
+(paste0("nitrate was above standard for ",nrow(nitrate_site_4)," week(s) at site 4")))
+
+cat(output, sep = "\n")
 
 phosphate_site_1 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site1",]
 phosphate_site_2 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site2",]
@@ -309,10 +323,14 @@ phosphate_site_3 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site3
 phosphate_site_4 <- river_df[river_df$phosphate > 2 & river_df$site_id == "site4",]
 
 #checking how many weeks were above phosphate standard for each site
-print(paste0("phosphate was above standard for ",nrow(phosphate_site_1)," week(s) at site 1"))
-print(paste0("phosphate was above standard for ",nrow(phosphate_site_2)," week(s) at site 2"))
-print(paste0("phosphate was above standard for ",nrow(phosphate_site_3)," week(s) at site 3"))
-print(paste0("phosphate was above standard for ",nrow(phosphate_site_4)," week(s) at site 4"))
+output <- c(
+  paste0("phosphate was above standard for ", nrow(phosphate_site_1), " week(s) at site 1"),
+  paste0("phosphate was above standard for ", nrow(phosphate_site_2), " week(s) at site 2"),
+  paste0("phosphate was above standard for ", nrow(phosphate_site_3), " week(s) at site 3"),
+  paste0("phosphate was above standard for ", nrow(phosphate_site_4), " week(s) at site 4")
+)
+
+cat(output, sep = "\n")
 
 both_site_1 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site1", ]
 both_site_2 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site2", ]
@@ -320,57 +338,78 @@ both_site_3 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df
 both_site_4 <- river_df[river_df$phosphate > 2 & river_df$nitrate > 5 & river_df$site_id == "site4", ]
 
 #checking how many weeks were above phosphate and nitrate standard for each site
-print(paste0("nitrate AND phosphate were above standard for ",nrow(both_site_1)," week(s) at site 1"))
-print(paste0("nitrate AND phosphate were above standard for ",nrow(both_site_2)," week(s) at site 2"))
-print(paste0("nitrate AND phosphate were above standard for ",nrow(both_site_3)," week(s) at site 3"))
-print(paste0("nitrate AND phosphate were above standard for ",nrow(both_site_4)," week(s) at site 4"))
+output <- c(
+  paste0("nitrate AND phosphate were above standard for ", nrow(both_site_1), " week(s) at site 1"),
+  paste0("nitrate AND phosphate were above standard for ", nrow(both_site_2), " week(s) at site 2"),
+  paste0("nitrate AND phosphate were above standard for ", nrow(both_site_3), " week(s) at site 3"),
+  paste0("nitrate AND phosphate were above standard for ", nrow(both_site_4), " week(s) at site 4")
+)
+
+cat(output, sep = "\n")
 
 ```
 
+Site 4 seems to be of greatest concern, it has the most days over standard in phosphate and nitrate.
+
+
 ## #7
+
+Let's look when nitrate was above standard for 3 consecutive weeks at site 1:
 
 ```{r}
 #finding times where it occured for 3 consecutive weeks for nitrate/site1
 for (i in 1:(nrow(nitrate_site_1) - 2)) {
-    
-    start_date <- nitrate_site_1$date[i]
-    end_date <- nitrate_site_1$date[i + 2]
-    
-    if (end_date - start_date == 14) {
-      print(paste0("Three consecutive weeks of nitrate above standard found at site1:"))
-      print(paste("Start Date:", start_date))
-      print(paste("End Date:", end_date))
-      print("")
-    }
+  
+  start_date <- nitrate_site_1$date[i]
+  end_date <- nitrate_site_1$date[i + 2]
+  
+  if (end_date - start_date == 14) {
+    cat(paste0("Three consecutive weeks of nitrate above standard found at site1:\n"))
+    cat(paste("Start Date:", start_date, "\n"))
+    cat(paste("End Date:", end_date, "\n"))
+    cat("\n")
+  }
 }
+```
 
+Let's look when nitrate was above standard for 3 consecutive weeks at site 3:
 
+```{r}
 for (i in 1:(nrow(nitrate_site_3) - 2)) {
   
   start_date <- nitrate_site_3$date[i]
   end_date <- nitrate_site_3$date[i + 2]
   
   if (end_date - start_date == 14) {
-    print(paste0("Three consecutive weeks of nitrate above standard found at site3:"))
-    print(paste("Start Date:", start_date))
-    print(paste("End Date:", end_date))
-    print("")
+    cat(paste0("Three consecutive weeks of nitrate above standard found at site3:\n"))
+    cat(paste("Start Date:", start_date, "\n"))
+    cat(paste("End Date:", end_date, "\n"))
+    cat("\n")
   }
 }
+```
 
+Let's look when nitrate was above standard for 3 consecutive weeks at site 4:
+
+```{r}
 for (i in 1:(nrow(nitrate_site_4) - 2)) {
   
   start_date <- nitrate_site_4$date[i]
   end_date <- nitrate_site_4$date[i + 2]
   
   if (end_date - start_date == 14) {
-    print(paste0("Three consecutive weeks of nitrate above standard found at site 4:"))
-    print(paste("Start Date:", start_date))
-    print(paste("End Date:", end_date))
-    print("")
+    cat(paste0("Three consecutive weeks of nitrate above standard found at site 4:\n"))
+    cat(paste("Start Date:", start_date, "\n"))
+    cat(paste("End Date:", end_date, "\n"))
+    cat("\n")
   }
 }
+```
 
+
+Let's look when phosphate was above standard for 3 consecutive weeks at site 1:
+
+```{r}
 #now with phosphate
 for (i in 1:(nrow(phosphate_site_1) - 2)) {
   
@@ -378,41 +417,52 @@ for (i in 1:(nrow(phosphate_site_1) - 2)) {
   end_date <- phosphate_site_1$date[i + 2]
   
   if (end_date - start_date == 14) {
-    print(paste0("Three consecutive weeks of phosphate above standard found at site 1:"))
-    print(paste("Start Date:", start_date))
-    print(paste("End Date:", end_date))
-    print("")
+    cat(paste0("Three consecutive weeks of phosphate above standard found at site 1:\n"))
+    cat(paste("Start Date:", start_date, "\n"))
+    cat(paste("End Date:", end_date, "\n"))
+    cat("\n")
   }
 }
+```
 
+Let's look when phosphate was above standard for 3 consecutive weeks at site 3:
 
+```{r}
 for (i in 1:(nrow(phosphate_site_3) - 2)) {
   
   start_date <- phosphate_site_3$date[i]
   end_date <- phosphate_site_3$date[i + 2]
   
   if (end_date - start_date == 14) {
-    print(paste0("Three consecutive weeks of phosphate above standard found at site 3:"))
-    print(paste("Start Date:", start_date))
-    print(paste("End Date:", end_date))
-    print("")
+    cat(paste0("Three consecutive weeks of phosphate above standard found at site 3:\n"))
+    cat(paste("Start Date:", start_date, "\n"))
+    cat(paste("End Date:", end_date, "\n"))
+    cat("\n")
   }
 }
+```
 
+
+Let's look when phosphate was above standard for 3 consecutive weeks at site 4:
+
+```{r}
 for (i in 1:(nrow(phosphate_site_4) - 2)) {
   
   start_date <- phosphate_site_4$date[i]
   end_date <- phosphate_site_4$date[i + 2]
   
   if (end_date - start_date == 14) {
-    print(paste0("Three consecutive weeks of phosphate above standard found at site 4:"))
-    print(paste("Start Date:", start_date))
-    print(paste("End Date:", end_date))
-    print("")
+    cat(paste0("Three consecutive weeks of phosphate above standard found at site 4:\n"))
+    cat(paste("Start Date:", start_date, "\n"))
+    cat(paste("End Date:", end_date, "\n"))
+    cat("\n")
   }
 }
+```
 
+Let's look when phosphate AND nitrate were above standard for 3 consecutive weeks at site 1:
 
+```{r}
 #now for both sites
 for (i in 1:(nrow(both_site_1) - 2)) {
   
@@ -420,40 +470,49 @@ for (i in 1:(nrow(both_site_1) - 2)) {
   end_date <- both_site_1$date[i + 2]
   
   if (end_date - start_date == 14) {
-    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 1:"))
-    print(paste("Start Date:", start_date))
-    print(paste("End Date:", end_date))
-    print("")
+    cat(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 1:\n"))
+    cat(paste("Start Date:", start_date, "\n"))
+    cat(paste("End Date:", end_date, "\n"))
+    cat("\n")
   }
 }
+```
 
+Let's look when phosphate AND nitrate were above standard for 3 consecutive weeks at site 3:
 
+```{r}
 for (i in 1:(nrow(both_site_3) - 2)) {
   
   start_date <- both_site_3$date[i]
   end_date <- both_site_3$date[i + 2]
   
   if (end_date - start_date == 14) {
-    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 3:"))
-    print(paste("Start Date:", start_date))
-    print(paste("End Date:", end_date))
-    print("")
+    cat(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 3:\n"))
+    cat(paste("Start Date:", start_date, "\n"))
+    cat(paste("End Date:", end_date, "\n"))
+    cat("\n")
   }
 }
+```
 
+Let's look when phosphate AND nitrate were above standard for 3 consecutive weeks at site 4:
+
+```{r}
 for (i in 1:(nrow(both_site_4) - 2)) {
   
   start_date <- both_site_4$date[i]
   end_date <- both_site_4$date[i + 2]
   
   if (end_date - start_date == 14) {
-    print(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 4:"))
-    print(paste("Start Date:", start_date))
-    print(paste("End Date:", end_date))
-    print("")
+    cat(paste0("Three consecutive weeks of phosphate and nitrate above standard found at site 4:\n"))
+    cat(paste("Start Date:", start_date, "\n"))
+    cat(paste("End Date:", end_date, "\n"))
+    cat("\n")
   }
 }
 ```
+
+April seems to be the most common time for nitrate and phosphate to peak, specifically at site 1. 
 
 ## #8
 
@@ -481,6 +540,10 @@ river_df %>%
   geom_line(y=2,linewidth = 1,color = "black") +
   theme_bw()
 ```
+
+Given the black line indicating the standard, site 2 is the only sight that does not need to take action for remediation efforts. Site 4 must look at their stream sources and fix the issue immediately, as this sight is above standard majority of the time for phosphate levels, and frequently above standard for nitrate levels.
+
+
 
 # Solar Farm Production Analyst
 
@@ -527,7 +590,7 @@ summary(solar_df)
 
 ## #10
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 solar_df %>% 
   ggplot(aes(x=production,y=irradiation)) +
   geom_smooth(method = "lm") +
@@ -535,45 +598,50 @@ solar_df %>%
   theme_bw()
 ```
 
+This relationship does appear positively linear, albeit with a large SD
+
 ## #11
 
 ```{r}
 model <- lm(solar_df$production~solar_df$temp + solar_df$irradiation)
 
 summary(model)
-
 ```
 
+R^2 is 0.32 and p value is 0.005. These values are significant.
+
 ## #12
-5*1.141 increase in production with an increase in 5 degrees temperature
+Given the model, and increase of 5 degrees would make the production go up by x*1.141: causing a 5.705 kWh increase in production.
 
 ## #13
+
+Here is the summary of the model created only by the cumulative degradation:
+
 ```{r}
 model <- lm(solar_df$production~solar_df$degrade_cumulative)
 
 summary(model)
+```
 
+
+And here is a plot of that
+
+
+```{r}
 solar_df %>% 
   ggplot(aes(x=production,y=degrade_cumulative)) +
   geom_point() +
-  geom_smooth()
+  geom_smooth() +
+  theme_bw() +
+  labs(x="Production (kWh)",
+       y="Cumulative Degradation (%)")
+```
 
+This plot shows nearly 0 correlation.
 
-head(solar_df)
-summary(solar_df)
+```{r}
 
-
-#it seems to be a linear plot, albeit with a large SD
-
-production_model <- lm(solar_df$production ~ solar_df$temp + solar_df$irradiation)
-
-summary(production_model)
-
-sum(solar_df$degrade_percent)
-#33.2 percent degradations total
-
-
-
+cat("Total degradation:", sum(solar_df$degrade_percent), "%")
 ```
 
 ## #14
@@ -581,7 +649,15 @@ sum(solar_df$degrade_percent)
 ```{r}
 # 1 kWh = 0.0036 GJ
 #total production in GJ
-sum(solar_df$production) * 0.0036
+cat("Total production:",sum(solar_df$production) * 0.0036,"GJ")
 ```
 
 ## #15
+```{r}
+kW <- solar_df$production / 12
+
+total_kW <- sum(kW)
+
+cat("Total kW generated:",total_kW)
+```
+
