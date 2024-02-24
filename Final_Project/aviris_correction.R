@@ -1,6 +1,8 @@
 # Load necessary libraries
 library(raster)
 library(sf)
+library(rgdal)
+library(gdal)
 
 # Replace with the actual file path of your geometric correction file
 geo_file <- "../../AVIRIS/1999/f991017t01p02_r11c/f991017t01p02_r11.geo"

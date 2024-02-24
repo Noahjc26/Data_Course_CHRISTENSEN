@@ -1,0 +1,198 @@
+---
+title: "Pivoting Exercise"
+output:
+  rmdformats::downcute
+---
+
+Load the tidyverse package, this contains ggplot and dplyr so no need to load those in alongside it.
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+
+# Pivoting Longer
+
+Copy this dataframe into your r session:
+
+```{r}
+revenue <- data.frame(
+  cid = c(1, 2, 3),
+  customers = c("Odile", "Rasheda", "Ettie"),
+  age = c(7, 2, 25),
+  revenue.2016 = c(272, 478, 614),
+  revenue.2017 = c(345, 788, 655),
+  revenue.2018 = c(495, 390, 702)
+)
+```
+
+If we were wanting to plot revenue for each customer we would have to create 3 separate plots in this format.
+
+Using the pivot_longer function we can make a new column that is "year" which encompasses the 2016, 2017, and 2018 columns.
+
+```{r}
+revenue_long <- revenue %>% 
+  pivot_longer(cols = starts_with("revenue"),
+               names_to = "year",
+               values_to = "revenue")
+
+print(revenue_long)
+
+```
+
+Now we can create better plots with this format!
+
+```{r}
+revenue_long %>% 
+  ggplot(aes(x=customers,y=revenue,color=year)) +
+  geom_point()
+```
+
+We can also use the facet_wrap function if we wanted to create 3 separate plots
+
+```{r}
+revenue_long %>% 
+  ggplot(aes(x=customers,y=revenue,fill = year)) +
+  geom_col() +
+  facet_wrap(~year)
+```
+
+Facet_wrap created individual plots based on the variable you give it, in this case it separted into 3 plots since the ~year column has three unique values.
+
+--- 
+
+## Pivoting Longer Exercise
+
+Look at the billboard dataframe from the tidyverse package.
+
+This dataframe contains tracks and their rank on the top 100. It has weeks in individual columns. Each week is showing the rank of that song from the first week it got on the top 100 chart.
+
+Try to recreate this plot:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+long_billboard <- billboard %>% 
+  pivot_longer(cols = starts_with("wk"),
+               names_to = "week",
+               values_to = "rank") 
+
+long_billboard$week <- gsub("wk","",long_billboard$week)
+
+long_billboard$week <- as.numeric(long_billboard$week)
+
+long_billboard %>% 
+  ggplot(aes(x=week,y=rank)) +
+  geom_smooth() +
+    labs(title = "Track Ranks Over Time",
+       x = "Week Number",
+       y = "Rank") +
+  theme_bw()
+```
+
+## Hints: 
+
+- When pivoting longer you can use the **cols = starts_with()** function to specify which columns you want to select based on what character they start with.
+
+- Make sure the new "week" column in numeric (you'll need to remove the "wk" from the observations first).
+
+- geom_smooth() is the ggplot function to plot a curve representing the relationship between variables.
+
+- Change labels in ggplot with labs function: **+ labs(title = , x = , y = )**
+
+---
+
+# Pivot Wider
+
+Copy this dataframe into your r session:
+
+```{r}
+life_df <- data.frame(
+  country = c("Brazil", "Brazil", "Brazil", "China", "China", "China", "United States", "United States", "United States"),
+  continent = c("Americas", "Americas", "Americas", "Asia", "Asia", "Asia", "Americas", "Americas", "Americas"),
+  year = c(1952, 1977, 2007, 1952, 1977, 2007, 1952, 1977, 2007),
+  lifeExp = c(50.9, 61.5, 72.4, 44, 64.0, 73.0, 68.4, 73.4, 78.2)
+)
+```
+
+Looking at this dataframe it is showing the life expectancy for Brazil, China and the United States in the years 1952, 1977 and 2007.
+
+```{r}
+print(life_df)
+```
+
+If you wanted the table easier to view life expectancy in the table you could use the **pivot wider** function.
+Pivoting wider works by creating new columns based on the observations in a column and using values from a different column to fill in the rows.
+
+```{r}
+life_df_wide <- life_df %>% pivot_wider(names_from = "year",
+                        values_from = "lifeExp")
+
+```
+
+```{r echo=FALSE}
+print(life_df_wide)
+```
+
+--- 
+
+## Pivoting Wider Exercise
+
+Load in the us_rent_income dataframe from the tidyverse package
+
+Create this plot (no pivoting necessary)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+us_rent_income %>% 
+  ggplot(aes(x=NAME,y=estimate,fill=variable)) +
+  geom_col() +
+   labs(title = "Monthly Rent and Yearly Income Estimates by State",
+       x = "State",
+       y = "USD",
+       fill = "Category") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5)) +
+  facet_wrap(~variable)
+```
+
+This plot shows interesting information, but what if you wanted the rent to be displayed as yearly? This would give a better look at the cost percentage of rent compared to income.
+
+Try to make this plot:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+us_rent_income <- us_rent_income %>% select(-moe)
+
+us_rent_income_wide <- us_rent_income %>% pivot_wider(
+    names_from = variable,
+    values_from = estimate
+  )
+
+#creating new column that is rent over the year
+us_rent_income_wide$rent_year = us_rent_income_wide$rent * 12
+
+us_rent_income_wide %>% 
+  pivot_longer(cols=c("rent_year","income"),
+               names_to = "category",
+               values_to = "USD") %>% 
+  ggplot(aes(x=NAME,y=USD,fill=category)) +
+  geom_col()  +
+  labs(title = "Yearly Rent and Income Estimates by State",
+       x = "State",
+       y = "USD",
+       fill = "Category") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5)) +
+  facet_wrap(~category)
+
+```
+
+## Hints:
+
+- Start by removing the "moe" column, this makes the next steps much easier
+
+- Pivot wider so you have new columns "income" and "rent"
+
+- Create new column that is the rent cost for a year (multiply rent column by 12)
+
+- Pivot longer to bring the dataframe back into a long format (this is the better format for plotting)
+
+- To set x-axis text at an angle in ggplot:
+**+ theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5))**

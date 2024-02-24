@@ -48,6 +48,7 @@ us_temp %>%
   slice(c(1, n())) %>%
   select(name, diff_june_22)
 
+
 us_temp %>%
   filter(region == "South") %>%
   arrange(desc(diff_june_22)) %>%
@@ -102,6 +103,14 @@ us_temp_long %>%
   geom_histogram() +
   facet_wrap(~month_year) +
   theme_bw()
+
+
+# next tuesday ----
+
+# pivot tables
+# facet wrap
+
+
 
 ## #3
 
@@ -233,3 +242,42 @@ states_to_exclude <- c("Alaska", "California", "Delaware", "District of Columbia
 filtered_pop_elev <- pop_elev %>%
   filter(!state %in% states_to_exclude)
 
+
+filtered_pop_elev %>%
+  ggplot(aes(x = percent_change_2020, y = elev_range)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "red") +  # Add linear model line
+  theme_bw() +
+  labs(x="Percent change from 2010 to 2020",
+       y="Elevation range from lowest to highest point")
+
+#creating the linear model to look at the numbers
+model <- lm(percent_change_2020 ~ elev_range, data = filtered_pop_elev)
+summary(model)
+
+## #10
+
+long_pop_elev <- pop_elev %>% pivot_longer(starts_with("percent"),
+                          names_to = "year",
+                          values_to = "percent_change")
+
+long_pop_elev %>% 
+  ggplot(aes(x=year,y=percent_change,fill=year)) +
+  geom_boxplot()
+
+#im not exactly sure what question 10 is asking
+
+## #11
+us_temp <- rename(us_temp,state = name)
+
+pop_elev_temp <- full_join(pop_elev,us_temp)
+
+pop_elev_temp %>% 
+  ggplot(aes(x=percent_change_2020,y=max_elev_ft)) +
+  geom_point()
+
+pop_elev_temp %>% 
+  ggplot(aes(x=june_means,y=max_elev_ft)) +
+  geom_point()
+
+  

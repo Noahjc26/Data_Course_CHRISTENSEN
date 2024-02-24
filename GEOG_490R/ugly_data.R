@@ -53,4 +53,46 @@ for (i in 1:nrow(df2)) {
 }
 
 
-clean_data <- full_join(df2,df1)
+write.csv(df1,"./f_count.csv")
+write.csv(df2,"./m_count.csv")
+
+
+
+clean_data <- full_join(df2,df1,by = join_by(Year, sex, age_range, count))
+
+clean_data$count <- as.numeric(clean_data$count)
+
+clean_data %>% 
+  ggplot(aes(x=age_range,y=count,fill = sex)) +
+  geom_col()
+
+
+
+tot <- read.csv("../tot_migrant_deaths_2023.csv")
+
+
+
+# This function is very specific and only works with this dataset... BUT if this dataset were to be updated you could easily use this function to create plots showing death count and cause of death in different counties and visiualizing the difference in deaths by sex.
+plot_death <- function(x){
+  y <- x[x$Sex != "undetermined",] %>% 
+    ggplot(aes(x=Cause.of.Death,fill=Sex)) +
+    geom_bar() +
+    theme_bw() +
+    labs(x="Cause of death",
+         y= "Count")
+
+  
+  y + theme(axis.text.x = element_text(angle = 45, vjust = 1,hjust = 1)) +
+    facet_wrap(~County)
+}
+
+
+plot_death(tot)
+
+
+tot <- read.csv("./tot_migrant_deaths_2023.csv")
+
+plot_death <- function(x){y <- x[x$Sex != "undetermined",] %>%  ggplot(aes(x=Cause.of.Death,fill=Sex)) + geom_bar() + theme_bw() +  labs(x="Cause of death",  y= "Count") 
+y + theme(axis.text.x = element_text(angle = 45, vjust = 1,hjust = 1)) + facet_wrap(~County)}
+
+plot_death(tot)
