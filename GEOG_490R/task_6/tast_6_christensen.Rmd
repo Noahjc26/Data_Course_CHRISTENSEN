@@ -1,0 +1,238 @@
+---
+title: "Task 6, Noah Christensen"
+output:
+  rmdformats::html_docco
+---
+
+I'm testing out this rmdformat, I think it looks really clean and easy to read!
+
+## #1
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+
+#reading in csv
+df <- read.csv("../task_6/UTSNTL_ALL_2020_2022_Daily_Wide.csv")
+
+#turning date into date format
+df$Date <- as.Date(df$Date, tryFormats = "%m/%d/%y")
+
+#creating new column to specify freezing or not
+df$freezing <-ifelse(df$Agua.Canyon..907..Air.Temperature.Average..degF. < 32,"Yes","No")
+
+#plotting
+df %>%
+  ggplot(aes(x = Date, y = Agua.Canyon..907..Snow.Water.Equivalent..in..Start.of.Day.Values)) +
+  geom_ribbon(aes(ymin = 0, ymax = Agua.Canyon..907..Snow.Water.Equivalent..in..Start.of.Day.Values), alpha = 0.75, fill = "lightblue") +
+  geom_line(aes(y = Agua.Canyon..907..Air.Temperature.Average..degF./3, color = freezing, group = 1)) +
+  scale_y_continuous(name = "SWE (inches)", sec.axis = sec_axis(trans = ~.*3, name = "Temperature (degF)")) +
+  theme_bw() +
+  theme(axis.title.y.right = element_text(color = "firebrick"),
+        axis.text.y.right = element_text(color = "firebrick")) +
+  labs(title = "Agua Canyon Snotel 2020-2023")
+```
+(click on the plot to zoom in!)
+
+## #2
+
+```{r message=FALSE, warning=FALSE}
+#reading in df again to remove freezing column
+df <- read.csv("../task_6/UTSNTL_ALL_2020_2022_Daily_Wide.csv")
+
+#turning date column into date format
+df$Date <- as.Date(df$Date, tryFormats = "%m/%d/%y")
+
+#pivoting longer by everything except the first two columns
+df_long <- df %>% pivot_longer(2:length(df),
+                    names_to = "Category",
+                    values_to = "Value")
+
+
+#Regular expression to extract the numbers inside of the categories
+length(unique(gsub(".*\\.\\.([0-9]+)\\.\\..*", "\\1", df_long$Category)))
+
+#There are 137 different sites with 6570 observations each
+table(gsub(".*\\.\\.([0-9]+)\\.\\..*", "\\1", df_long$Category))
+
+# Just checking!
+900090/137
+```
+There are 137 different sites and each one has 6570 observations. I also divided the total number of rows (900090) by the number of sites (137) to double check that each one does actually have 6570 observations.
+
+## #3
+
+```{r message=FALSE, warning=FALSE}
+#creating new column that specifies each year winter season
+df_long$season <- cut(df_long$Date, breaks =  c(as.Date(c("2020-10-01", "2021-10-01", "2022-10-01")), Inf), labels = paste0("season_", c(1, 2, 3)))
+
+# code that outputs 15 lines, 5 lines for each season of the locations with the most snow depth
+deepest_snow <- df_long %>%
+  filter(grepl("Snow.Depth", Category)) %>%
+  filter(grepl("season_1", season)) %>% 
+  arrange(desc(Value)) %>%
+  distinct(Category, .keep_all = TRUE) %>%
+    mutate(Category = str_extract(Category, "^[^0-9]+") %>% str_replace_all("\\.", "")) %>% #mutating so the category column only keep everything before the numbers and deletes the dots 
+  slice_head(n = 5) %>% 
+union(
+  df_long %>%
+    filter(grepl("Snow.Depth", Category)) %>%
+    filter(grepl("season_2", season)) %>% 
+    arrange(desc(Value)) %>%
+    distinct(Category, .keep_all = TRUE) %>%
+      mutate(Category = str_extract(Category, "^[^0-9]+") %>% str_replace_all("\\.", "")) %>% 
+    slice_head(n = 5)
+) %>% 
+  union(
+    df_long %>%
+      filter(grepl("Snow.Depth", Category)) %>%
+      filter(grepl("season_3", season)) %>% 
+      arrange(desc(Value)) %>%
+      distinct(Category, .keep_all = TRUE) %>%
+        mutate(Category = str_extract(Category, "^[^0-9]+") %>% str_replace_all("\\.", "")) %>% 
+      slice_head(n = 5)
+  )
+
+deepest_snow
+```
+Here is a look at the top 5 snotel sites with the deepest snow depth for each season! I've never used the distinct function but I found it online and it is very useful! I also have never used the union function but it's super simple to combine a table together given that you want to start at the beginning of a dataframe each time.
+
+## #4
+
+```{r message=FALSE, warning=FALSE}
+deepest_snow %>% 
+  ggplot(aes(x = Category)) +
+  geom_histogram(stat = "count", fill = "skyblue", color = "black") +
+  labs(title = "Each time a location was in the top 5 for snow depth per season",
+       x = "",
+       y = "Count") +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+Farmington and Snowbird both occurred every time as one of the top five snow depth sites for the three seasons of data.
+
+Tony Grove Lake and Ben Lomond Peak occurred two times in the top five for the three seasons of data.
+
+
+## #5
+
+```{r message=FALSE, warning=FALSE}
+#making column that specifies the type of data collection
+df_long$data <- str_extract(df_long$Category, "\\d+\\.\\.(.*)")
+
+# Remove numbers and dots
+df_long$data <- str_replace_all(df_long$data, "\\d+\\.", "")
+
+# Remove all dot at the beginning
+df_long$data <- str_replace(df_long$data, "^\\.*", "")
+
+# Remove dot at the end
+df_long$data <- str_replace(df_long$data, "\\.$", "")
+
+#turning all . into _
+df_long$data <- gsub("\\.","_",df_long$data)
+
+#keeping everything before the numbers in the category column
+df_long <- df_long %>% 
+  mutate(location = str_extract(Category, "^[^0-9]+"))
+
+#removing trailing dots in the Category column
+df_long$location <- gsub("\\.+$", "", df_long$location)
+
+#changing middle . to _
+df_long$location <- gsub("\\.", "_", df_long$location)
+
+#removing "category" column
+df_long <- df_long %>% select(-Category)
+
+#reading in elevation data
+elev_df <- read.csv("../task_6/UTSNTL_ELEV.csv")
+
+#turning all empty spaces to underscores
+elev_df$names <- gsub(" ","_",elev_df$names)
+
+#trying out the anti_join function
+different_rows <- anti_join(df_long, elev_df, by = c("location" = "names"))
+unique(different_rows$location)
+#This has 14 variable and the full join has 151. This makes sense as there was only 137 different locations in the df_long
+
+#full joining the elevation to the long dataframe
+full_df <- full_join(df_long, elev_df, by = c("location" = "names"))
+
+#showing that most of the locations now have an elevation
+full_df %>% 
+  distinct(location, .keep_all = TRUE) %>% 
+  select(location,elevation_ft) %>% 
+  print(n=151)
+```
+
+You can see that not all of the locations have an elevation, this is because both of the dataframes contain some different locations.
+
+I used the anti_join function to see which locations were not in both and there were 14 locations, this makes sense as I found 137 earlier in this document and 151 total after combining with the elevation (151-14 = 137).
+
+```{r message=FALSE, warning=FALSE}
+#creating 2021 april snow water equivalent dataframe
+swe_2021_april <- full_df %>% 
+  filter(Date >= "2021-04-01" & Date < "2021-05-01") %>% 
+  filter(str_detect(data, "Snow_Water_Equi")) %>% 
+  arrange(desc(Value)) %>%
+  distinct(location, .keep_all = TRUE)
+
+swe_2021_april %>% 
+  ggplot(aes(x=elevation_ft,y=Value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_bw() +
+  labs(x="Elevation (ft)",
+       y= "SWE (in)",
+       title = "SWE vs Elevation April 2021")
+
+#creating 2022 april snow water equivalent dataframe
+swe_2022_april <- full_df %>% 
+  filter(Date >= "2022-04-01" & Date < "2022-05-01") %>% 
+  filter(str_detect(data, "Snow_Water_Equi")) %>% 
+  arrange(desc(Value)) %>%
+  distinct(location, .keep_all = TRUE)
+
+swe_2022_april %>% 
+  ggplot(aes(x=elevation_ft,y=Value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_bw() +
+  labs(x="Elevation (ft)",
+       y= "SWE (in)",
+       title = "SWE vs Elevation April 2022")
+
+#creating 2023 april snow water equivalent dataframe
+swe_2023_april <- full_df %>% 
+  filter(Date >= "2023-04-01" & Date < "2023-05-01") %>% 
+  filter(str_detect(data, "Snow_Water_Equi")) %>% 
+  arrange(desc(Value)) %>%
+  distinct(location, .keep_all = TRUE)
+
+swe_2023_april %>% 
+  ggplot(aes(x=elevation_ft,y=Value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_bw() +
+  labs(x="Elevation (ft)",
+       y= "SWE (in)",
+       title = "SWE vs Elevation April 2023")
+```
+
+Here are three plots for each season of the highest snow water equivalent for each site compares to their elevation.
+
+
+## #6
+
+```{r message=FALSE, warning=FALSE}
+#summary of linear model for april 2021, 2022, and 2023 swe by elevation
+summary(lm(Value~elevation_ft,swe_2021_april))
+summary(lm(Value~elevation_ft,swe_2022_april))
+summary(lm(Value~elevation_ft,swe_2023_april))
+```
+
+Looking at the summary of the linear model for each of these, the 2021 and 2022 April models do show a decent correlation with a p-value significantly less than 0.05
+
+The 2023 model actually shows a negative correlation which is very interesting.
+
+I'm thinking these discrepancies in the relationship between elevation and SWE are due local features such as the hillslope directions and just a year by year randomness. We are only looking at three years, I'm assuming if we looked at a few decades of data it would show a more definitive correlation between elevation and SWE.

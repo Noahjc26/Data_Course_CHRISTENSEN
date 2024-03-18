@@ -83,3 +83,8 @@ remove_na <- function(x){
 
 remove_na(vect)
 
+
+
+
+
+
