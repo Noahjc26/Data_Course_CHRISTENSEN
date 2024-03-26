@@ -1,0 +1,391 @@
+---
+title: "Task 7 - Noah Christensen"
+output:
+  rmdformats::html_docco
+---
+
+# #1
+```{r message=FALSE, warning=FALSE}
+# Reading in libraries
+library(tidyverse)
+library(terra)
+library(RColorBrewer)
+library(broom)
+library(maps)
+
+# Reading in Snotel Metadata
+df <- read.csv("./UTSNTL_META.csv")
+
+# Task 1
+df_vect <- vect(df,geom=c("Longitude", "Latitude"))
+
+UT_map = map("state", "Utah", plot = F) # save geometry
+UT_shp = vect(cbind(UT_map$x, UT_map$y), type = "lines", crs= "+proj=longlat +datum=WGS84")
+
+# Plotting snotel sites by elevation
+plot(UT_shp, main = "Elevation of snotel sites across Utah")
+plot(df_vect,"Elevation..ft.",type="continuous",add=T)
+```
+
+# #2
+
+```{r message=FALSE, warning=FALSE}
+
+
+# Reading in cleaned snow data from Task 6
+df2 <- read.csv("./cleaned_snow.csv")
+
+# Turning date column into date format
+df2$Date <- as.Date(df2$Date)
+df_2021_winter <- df2[df2$Date < "2022-03-21" & df2$Date > "2021-12-21",]
+
+# Only keeping row with the highest snow depth
+df_max_snow_depth <- filter(df_2021_winter, grepl("Snow_Depth", data)) %>% 
+  arrange(desc(Value)) %>%
+  distinct(location, .keep_all = TRUE)
+
+# Rename location column as Station.Name
+df_max_snow_depth <- df_max_snow_depth %>% 
+  rename(Station.Name = location)
+
+# Removing spaces, periods, and hyphens
+df$Station.Name <- gsub(" ","_", df$Station.Name)
+df$Station.Name <- gsub("\\.","_",df$Station.Name)
+df$Station.Name <- gsub("-","_",df$Station.Name)
+
+
+# Arranging the names in alphabetical order so its easier to see the differences
+df_max_snow_depth <- df_max_snow_depth %>% arrange(Station.Name)
+
+# Finding columns that don't match
+not_matching_df_max <- which(is.na(match(df_max_snow_depth$Station.Name,df$Station.Name)))
+not_matching_df <- which(is.na(match(df$Station.Name,df_max_snow_depth$Station.Name)))
+
+# Looking at names that don't match
+df[not_matching_df,]
+df_max_snow_depth[not_matching_df_max,]
+
+# Fixing columns one by one
+df$Station.Name <- gsub("Chalk_Creek_#1","Chalk_Creek",df$Station.Name)
+df$Station.Name <- gsub("Chalk_Creek_#2","Chalk_Creek",df$Station.Name)
+df$Station.Name <- gsub("Clear_Creek_#1","Clear_Creek",df$Station.Name)
+df$Station.Name <- gsub("Clear_Creek_#2","Clear_Creek",df$Station.Name)
+df$Station.Name <- gsub("Lakefork_#1","Lakefork",df$Station.Name)
+df$Station.Name <- gsub("Lakefork_#3","Lakefork",df$Station.Name)
+df$Station.Name <- gsub("Mosby_Mtn_","Mosby_Mtn",df$Station.Name)
+df$Station.Name <- gsub("White_River_#1","White_River",df$Station.Name)
+df$Station.Name <- gsub("Widtsoe_#3","Widtsoe",df$Station.Name)
+df$Station.Name <- gsub("Payson_R_S_","Payson_R_S",df$Station.Name)
+
+# Full joining
+df_full <- full_join(df,df_max_snow_depth, by = "Station.Name")
+
+# Making full vector for the full join dataframe
+vect_full <- vect(df_full,geom=c("Longitude","Latitude"))
+
+# Plotting
+plot(vect_full, "Value", type="continuous",box=F,buffer=T,xlim=c(-115,-108),ylim=c(36.7,42),
+     main="SNOTEL Snow Depth across Utah 2021-2022 Winter")
+library(maps)
+map(database="state",regions = "Utah",add=T)
+```
+
+# #3
+
+```{r message=FALSE, warning=FALSE}
+par(mfrow = c(3,1), mar = c(0,3,4,3))
+
+# Equal interval plots
+map(database="state",regions = "Utah")
+plot(vect_full,
+     type = 'interval',
+     breakby = "eqint",
+     "Value",
+     breaks = 7,
+     col = rev(colorspace::sequential_hcl(7)),
+     box=F,
+     buffer=T,
+     xlim=c(-115,-108),ylim=c(36.5,43),
+     main= "Equal Interval",
+     add=T)
+
+
+# Quantile plots
+map(database="state",regions = "Utah")
+plot(vect_full,
+     type = 'interval',
+     breakby = "cases",
+     "Value",
+     breaks = 7,
+     col = rev(colorspace::sequential_hcl(7)),
+     box=F,
+     buffer=T,
+     xlim=c(-115,-108),ylim=c(36.5,43),
+     main= "Equal Quantile Breaks",
+     add=T)
+
+
+
+
+# Standard deviation plots
+snow_mean <- mean(vect_full$Value,na.rm=T)
+snow_sd <- sd(vect_full$Value,na.rm=T)
+
+breaks = c((snow_mean - 3*snow_sd),
+            (snow_mean - 2*snow_sd),
+           (snow_mean - snow_sd),
+           snow_mean,
+            (snow_mean + snow_sd),
+           (snow_mean + 2*snow_sd),
+           (snow_mean + 3*snow_sd))
+
+
+map(database="state",regions = "Utah")
+plot(vect_full,
+     type = 'interval',
+     "Value",
+     breaks = breaks,
+     col = rev(colorspace::diverge_hsv(6)),
+     box=F,
+     buffer=T,
+     xlim=c(-115,-108),ylim=c(36.5,43),
+     add=T,
+     main = "Standard Deviation")
+```
+
+
+The equal interval, equal quantile, and standard deviation plots all give different insights into the data you are looking at. 
+The Equal interval is like the name says it creates equal intervals from the max to min specified by the amount of breaks. This can be nice if you are comparing data that should have a linear trend.
+Equal Quantile breaks separates the data into sets of equal counts of data per break, this can be nice if you are wanting an even distribution of values in each break.
+Standard deviation breaks are nice when you want to view values above and below the mean and how far off they are from the expected values.
+
+# #4
+```{r message=FALSE, warning=FALSE}
+# Reading in HUC vector
+UT_shape <- vect("./UT_HUC8/UT_HUC8.shp")
+
+# Setting parameter and margins
+par(mfrow = c(1,1),mar = c(4,4,4,4))
+
+# Plotting
+plot(UT_shape,"NAME",legend = F)
+text(UT_shape, "NAME", cex=0.35, col='black')
+```
+
+
+# #5
+
+```{r message=FALSE, warning=FALSE}
+# Creating extent object
+extent <- as.polygons(ext(c(-111.952211,-111.536395,39.915063,40.471646)))
+
+# Setting coordinate reference system for the extent
+crs(extent) <- "epsg:4269"
+
+# Projecting extent to UT_shape crs
+extent <- project(extent,UT_shape)
+
+# Plot the UT_shape
+plot(UT_shape)
+
+# Plot the extent
+plot(extent, border = "firebrick", lwd = 1.5, add = TRUE)
+
+# Add legend for extent
+
+```
+
+# #6
+
+```{r message=FALSE, warning=FALSE}
+# Creating polygon that encompasses Utah above 39 degrees latitude
+above_39_lat <- as.polygons(ext(c(-120,-100,39,60)))
+
+# Setting coordinate reference system for that extent
+crs(above_39_lat) <- "epsg:4269"
+
+# Projecting that coordinate reference system to the UT reference system
+above_39_lat <- project(above_39_lat,UT_shape)
+
+# Cropping the Utah by the extent made
+crop_UT_shape <- crop(UT_shape,above_39_lat)
+
+# Plotting
+plot(crop_UT_shape, "NAME",legend = F)
+text(crop_UT_shape,"NAME",cex = 0.3)
+```
+
+# #7
+
+```{r message=FALSE, warning=FALSE}
+# Reading in Antelope island
+island <- vect("https://raw.githubusercontent.com/mattols/geospat_data/main/AntelopeIsland.geojson")
+
+# Projecting antelope island to the UT CRS
+island <- project(island,UT_shape)
+
+# Plotting
+plot(UT_shape[UT_shape$NAME == "Great Salt Lake"], col= "lightblue")
+plot(island, add = T,col="white")
+text(island, "Antelope Island", cex = 0.3)
+```
+
+# #8
+
+```{r message=FALSE, warning=FALSE}
+# Setting parameters
+par(mar = c(2,2,2,8))
+
+# Creating HUC4 and HUC2 by copying the UT vector
+HUC4 <- UT_shape
+HUC2 <- UT_shape
+
+# Subtracting the last digits to create HUC4 and HUC2 vectors
+HUC4$HUC <- substr(UT_shape$HUC,1,nchar(UT_shape$HUC) - 4)
+HUC2$HUC <- substr(UT_shape$HUC,1,nchar(UT_shape$HUC) - 6)
+
+# Aggregating by the same value for HUC2 and HUC4
+HUC2 <- aggregate(HUC2,"HUC")
+HUC4 <- aggregate(HUC4,"HUC")
+
+# Plot UT_shape with HUC attribute
+plot(UT_shape, "HUC", legend = FALSE)
+plot(HUC2, "HUC", add = TRUE, col = "transparent", border = "white", legend = FALSE, lwd = 6, lty = 1)
+plot(HUC4, "HUC", add = TRUE, col = "transparent", border = "red", legend = FALSE, lwd = 2.5, lty = 3)
+
+# Create legend for HUC2 and HUC4
+legend("topright", legend = c("HUC8","HUC4", "HUC2"), col = c("black","red", "white"), lty = c(1,3, 1), lwd = c(1,2, 4),bg = "lightgrey")
+text(HUC4,"NAME",cex = 0.5)
+```
+
+# #9
+
+```{r message=FALSE, warning=FALSE}
+# Adding coordinate system to full snotel data vector
+crs(vect_full) <- "epsg:4269"
+
+# Re-projecting to the same coordinate system as HUC8 data
+vect_full <- project(vect_full,UT_shape)
+
+# Plotting
+plot(UT_shape,"NAME",legend=F)
+plot(vect_full,add=T)
+
+# Creating new vector that has both UT_shape and vect_full data
+intersected <- intersect(UT_shape,vect_full)
+
+# Turning into data frame
+intersect_df <- as.data.frame(intersected)
+
+# Plotting each sheds snow depth by elevation plots
+intersect_df %>%
+  filter(Value != 0) %>%
+  ggplot(aes(x = Elevation..ft., y = Value)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ylim(5, 90) +
+  facet_wrap(~ HUC) +
+  theme_bw()
+
+# Filtering out 0 and NA
+intersect_df <- intersect_df %>% 
+  filter(Value!= 0 & is.na(Value) == FALSE)
+
+# Creating list of models for each HUC
+models <- intersect_df %>% 
+  group_by(HUC) %>% 
+  do(model = lm(formula = Value~Elevation..ft., data = .))
+
+
+# I had chatgpt help me with this, I wanted to make it so I could create the plot
+# Initialize an empty data frame to store results
+coefficients_df <- data.frame(HUC = character(), Intercept = numeric(), Elevation_Coefficient = numeric())
+
+# Loop over each model
+for (i in seq_along(models$model)) {
+  # Extract coefficients from the current model
+  coef_values <- coef(models$model[[i]])
+  
+  # Extract HUC value
+  huc_value <- models$HUC[i]
+  
+  # Append coefficients to the data frame
+  coefficients_df <- bind_rows(coefficients_df, data.frame(HUC = huc_value, 
+                                                           Intercept = coef_values[1], 
+                                                           Elevation_Coefficient = coef_values[2]))
+}
+
+# Convert HUC column in coefficients_df to character
+coefficients_df$HUC <- as.character(coefficients_df$HUC)
+
+# Merge the coefficients data frame with the UT_shape vector data
+merged_data <- merge(UT_shape, coefficients_df, by = "HUC")
+
+# Rounding data
+merged_data$Elevation_Coefficient <- round(merged_data$Elevation_Coefficient,4)
+merged_data$Intercept <- round(merged_data$Intercept,2)
+
+# Plot merged_data
+plot(merged_data, legend = FALSE,main = "Slope and intercept of snow depth values in a linear model compared to elevation")
+text(merged_data, labels = paste("slope:", merged_data$Elevation_Coefficient), cex = 0.4)
+text(merged_data, labels = paste("Intercept:", merged_data$Intercept), cex = 0.4,pos = 3)
+
+# Looking at linear model for all of the HUC's combined
+intersect_df %>% 
+  lm(formula = Value~Elevation..ft.)
+```
+
+Looking at the results across all of the available watersheds it definitely shows a correlation with higher slopes in areas that should have a higher elevation. Most of the slopes for each of the watersheds are higher than the overall linear model, this makes sense because some of the watersheds actually have a negative slope and that would affect the linear model quite a bit.
+
+# #10
+
+```{r message=FALSE, warning=FALSE}
+HUCs <- unique(intersect_df$HUC)
+
+# Initialize an empty list to store subsets
+subset_list <- list()
+
+# Creating empty dataframe
+huc_data <- data.frame(
+  HUC = character(),
+  Station_Count = integer(),
+  Max_Snow_Depth = numeric(),
+  Mean_Elevation = numeric()
+)
+
+# Loop over each unique HUC value
+for (i in unique(intersect_df$HUC)) {
+  # Create a subset of intersect_df for the current HUC
+  subset_df <- intersect_df[intersect_df$HUC == i, ]
+
+    cat(paste0("Number of stations for HUC ", i, ": ",nrow(subset_df),"\n"))
+    cat(paste0("Max snow depth for HUC ", i, ": ",max(subset_df$Value),"\n"))
+    cat(paste0("Mean elevation for HUC ",i,": ",round(mean(subset_df$Elevation..ft.),2),"\n","\n"))
+   
+     # Calculate the number of stations
+    station_count <- nrow(subset_df)
+    
+    # Calculate the max snow depth
+    max_snow_depth <- max(subset_df$Value)
+    
+    # Calculate the mean elevation
+    mean_elevation <- round(mean(subset_df$Elevation..ft.), 2)
+    
+    # Add a row to the data frame
+    huc_data <- rbind(huc_data, data.frame(HUC = i, Station_Count = station_count, Max_Snow_Depth = max_snow_depth, Mean_Elevation = mean_elevation))
+}
+
+# Merging the data for the final plot
+huc_final <- merge(UT_shape,huc_data)
+
+# Setting columns and rows
+par(mfrow= c(2,1), mar = c(5,4,2,2))
+
+# Plotting
+plot(huc_final,"Max_Snow_Depth",type="continuous", main = "Max snow depth with number of stations", cex = 0.2)
+text(huc_final,"Station_Count", cex = 0.7)
+plot(huc_final,"Mean_Elevation",type="continuous",main = "Mean elevation with max snow depth", cex = 0.2)
+text(huc_final,"Max_Snow_Depth",cex = 0.7)
+
+```
+

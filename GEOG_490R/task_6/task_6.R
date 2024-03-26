@@ -137,6 +137,7 @@ df_long$location <- gsub("\\.", "_", df_long$location)
 #removing "category" column
 df_long <- df_long %>% select(-Category)
 
+
 #reading in elevation data
 elev_df <- read.csv("../GEOG_490R/task_6/UTSNTL_ELEV.csv")
 
@@ -215,3 +216,5 @@ swe_2023_april <- full_df %>%
 summary(lm(Value~elevation_ft,swe_2021_april))
 summary(lm(Value~elevation_ft,swe_2022_april))
 summary(lm(Value~elevation_ft,swe_2023_april))
+
+
