@@ -138,20 +138,25 @@ text(UT_shape, "NAME", cex=0.35, col='black')
 
 
 #5
-extent <- as.polygons(ext(c(-111.952211,-111.536395,39.915063,40.471646)))
+desired_extent <- c(-111.952211,-111.536395,39.915063,40.471646)
+extent <- ext(desired_extent)
+polygon_extent <- as.polygons(extent)
 
-crs(extent) <- "epsg:4269"
+extent <- as.polygons(ext(c(418618.3, 454529.9, 4418468, 4480543)))
+plot(UT_shape)
+
+crs(polygon_extent) <- "EPSG:26912"
 #projecting extent to UT_shape crs
-extent <- project(extent,UT_shape)
+extent <- project(polygon_extent,"EPSG:26912")
 
 # Plot the UT_shape
 plot(UT_shape)
 
 # Plot the extent
-plot(extent, border = "firebrick", lwd = 1.5, add = TRUE)
+plot(extent, border = "firebrick", lwd = 5, add = TRUE)
 
 # Add legend for extent
-
+legend(x=500000,y=4650000,legend = "Study Area", lty=1,col="red")
 
 #6
 above_39_lat <- as.polygons(ext(c(-120,-100,39,60)))
@@ -192,7 +197,7 @@ plot(HUC4, "HUC", add = TRUE, col = "transparent", border = "red", legend = FALS
 
 # Create legend for HUC2 and HUC4
 legend("topright", legend = c("HUC8","HUC4", "HUC2"), col = c("black","red", "white"), lty = c(1,3, 1), lwd = c(1,2, 4),bg = "lightgrey")
-text(HUC4,"NAME",cex = 0.5)
+text(HUC4,"HUC",cex = 0.75)
 
 HUC4$NAME
 

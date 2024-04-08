@@ -192,7 +192,7 @@ plot(UT_shape)
 plot(extent, border = "firebrick", lwd = 1.5, add = TRUE)
 
 # Add legend for extent
-
+legend(x=500000,y=4650000,legend = "Study Area", lty=1,col="red")
 ```
 
 # #6
@@ -254,8 +254,9 @@ plot(HUC2, "HUC", add = TRUE, col = "transparent", border = "white", legend = FA
 plot(HUC4, "HUC", add = TRUE, col = "transparent", border = "red", legend = FALSE, lwd = 2.5, lty = 3)
 
 # Create legend for HUC2 and HUC4
-legend("topright", legend = c("HUC8","HUC4", "HUC2"), col = c("black","red", "white"), lty = c(1,3, 1), lwd = c(1,2, 4),bg = "lightgrey")
-text(HUC4,"NAME",cex = 0.5)
+legend(x=520000,y=4650000, legend = c("HUC8","HUC4", "HUC2"), col = c("black","red", "white"), lty = c(1,3, 1), lwd = c(1,2, 4),bg = "lightgrey")
+text(HUC4,"HUC",cex = 0.75)
+
 ```
 
 # #9

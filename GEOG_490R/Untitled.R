@@ -104,3 +104,46 @@ jazz_2022 <- data.frame(
 
 ?match
 combined_jazz <- cbind(jazz_2020, jazz_2022[, -1])
+
+
+
+
+
+
+
+
+# April 2nd
+library(terra)
+
+r <- rast(ncol = 10, nrow = 10)
+values(r) <- 1:ncell(r)
+
+plot(r)
+
+#create another raster object that is the same as r 
+# assign it either 0 or 1 values
+
+
+ry <- r
+values(ry) <- sample(0:1,size = ncell(ry),replace = T)
+plot(ry * r)
+
+
+r2 <- r^r
+plot(r2)
+
+
+rr <- r
+
+plot(rr*(rr<52),col=c("red","darkred","blue","pink"),type="continuous")
+
+# Define color ramp
+color_ramp <- colorRampPalette(c("red","darkred","blue","pink"))  # Define a color ramp from red to yellow to green
+
+# Plot raster with continuous gradient color scale
+plot(r, col=color_ramp(100)) 
+
+plot(r,col= rainbow(5))
+
+
+     

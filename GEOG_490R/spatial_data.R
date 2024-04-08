@@ -56,9 +56,72 @@ lines(l)
 #terra preset dataset
 f <- system.file("ex/lux.shp",package="terra")
 
+v <- vect(f)
 
-plot(vect(f),"NAME_1")
+r <- rast(system.file("ex/elev.tif",package = "terra"))
 
+plot(r,breaks = 3, type = "interval",breakby = "eqint")
+plot(v,add=T)
+text(v,"NAME_1",halo = T, add = T)
+
+
+#######################
+#######################
+#######################
+#######################
+#######################
+#statistics to look at
+hist(r,breaks=120)
+global(r, na.rm = T)
+#zonal statistics
+zonal(r, z=v, na.rm = T)
+
+plot(v,"mean")
+v$mean <- round(zonal(r, z=v, na.rm = T),2)
+
+#######################
+#######################
+#######################
+#######################
+#######################
+#terrain parameters
+slope <- terrain(r, v = "slope", unit = "degrees")
+aspect <- terrain(r, v = "aspect", unit = "degrees")
+plot(slope, col = grey.colors(100))
+plot(r,col = terrain.colors(25), add = T,alpha = 0.5)
+
+plot(shade(slope*pi/180, aspect*pi/180, angle = 40, direction = 270), col = grey(0:100/100))
+
+m <- c(0, 1000, 1,
+       1000, 2000, 2)
+
+rcl_mat <- matrix(m, ncol = 3, byrow = T)
+
+r_class <- classify(r*3.28,rcl_mat)
+plot(r_class)
+
+
+
+p_sub <- v[v$NAME_2 == "Diekirch",]
+
+r_crop <- crop(x=r, y=p_sub,mask=T, touches = F)
+
+
+plot(r_crop)
+
+max_value <- max(na.omit(values(r)))
+interval <- (max_value - min_value) / 3
+
+break_1 <- max_value - interval
+break_2 <- max_value - interval *2
+break_3 <- min_value
+
+
+r$elev_class[r$elevation < break_1] = 5
+
+
+r <- vect(f)
+names(r)
 
 plot(vect("./Utah_ZIP_Code_Areas/ZipCodes.shp"),"NAME")
 

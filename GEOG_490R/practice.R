@@ -32,9 +32,34 @@ for (i in 1:length(grades)){
   } else if (grades[i] >= 75){
     letter_grade[i] = "D"
   } else {
-    letter_grade[i] = "E"r
+    letter_grade[i] = "E"
   } 
 }
 
 df = data.frame(grades,letter_grade)
-df
+
+
+
+
+# Rasters
+x <- rast()
+
+
+x <- rast(ncol =100,nrow = 100,xmin = -1000,xmax = 1000, ymin = -500, ymax = 900, crs = "+proj=utm +zone=48 +datum=WGS84")
+values(x) = 1:ncell(x)
+plot(x)
+
+x[] <- runif(ncell(x))
+plot(x)
+
+x[]
+
+
+newcrs <- "+proj=robin +datum=WGS84"
+
+pr1 <- project(x,newcrs)
+
+plot(pr1)
+
+
+

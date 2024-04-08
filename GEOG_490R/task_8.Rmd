@@ -1,0 +1,179 @@
+---
+title: "Task 8"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+### Packages required: **Terra** & **leaflet**
+
+```{r message=FALSE, warning=FALSE, class.source = "fold-show"}
+library(terra)
+library(leaflet)
+```
+
+Read this article, it gives a good overview of remote sensing and why band calculations work. [NDVI, NDBI, NDWI Calculation Using Landsat 7/8](https://www.linkedin.com/pulse/ndvi-ndbi-ndwi-calculation-using-landsat-7-8-tek-bahadur-kshetri)
+
+### Part 1 final product: **Create these two plots**
+
+```{r echo=FALSE}
+c_ls_7 <- rast("../../landsat/LE07_CU_008008_20010718_20210426_02_SR/cropped_landsat7.tif")
+
+MNDWI <- (c_ls_7[[2]] - c_ls_7[[5]]) / (c_ls_7[[2]] + c_ls_7[[5]]) > 0
+NDBI <- (c_ls_7[[5]] - c_ls_7[[4]]) / (c_ls_7[[5]] + c_ls_7[[4]]) > 0
+NDVI <- (c_ls_7[[4]] - c_ls_7[[3]]) / (c_ls_7[[4]] + c_ls_7[[3]]) > 0.2
+
+#For Landsat 7 data, MNDWI = (Band 2 – Band 5) / (Band 2 + Band 5)
+plotRGB(c_ls_7, r = 3, g = 2, b = 1, main = "RGB Image over Wasatch Mountains", stretch = "lin", axes = T, grid = T, mar = c(2,2,2,2))
+
+plot(MNDWI, col = c("transparent","cadetblue1"), main = "Classified image",  add = F, legend = F)
+plot(NDVI, add = TRUE,col = c("transparent","darkgreen"), legend = F)
+plot(NDBI, add = TRUE, col = c("transparent","tan"),legend = F) 
+
+legend(x= 410000, y= 4500000, legend = c("Water", "Barren", "Vegetation"), fill = c("cadetblue1", "tan", "darkgreen"))
+```
+
+---
+
+The Normalized Difference Vegetation Index (NDVI) is calculated as:
+
+\[
+NDVI = \frac{(NIR - Red)}{(NIR + Red)}
+\]
+
+where NIR represents the Near Infrared band **(Band 4)** and the Red band **(Band 3)** for Landsat 7.
+
+---
+
+The Modified Normalized Difference Water Index (MNDWI) is calculated as:
+
+\[
+MNDWI = \frac{(Green - SWIR)}{(Green + SWIR)}
+\]
+
+where Green represents the Green band **(Band 2)** and SWIR represents the Shortwave Infrared band **(Band 5)** of Landsat 7.
+
+---
+
+The Normalized Difference Built-Up Index (NDBI) is typically used to see areas of urban development, but it works well with this image to calculate barren land, it is calculated as:
+
+\[
+NDBI = \frac{(SWIR - NIR)}{(SWIR + NIR)}
+\]
+
+where SWIR represents the Shortwave Infrared band **(Band 5)** and NIR represents the Near Infrared band **(Band 4)** of Landsat 7.
+
+---
+
+### Steps:
+
+-Download the landsat 7 image.
+
+-Read in the image.
+
+-Do band caluclations for MNDWI, NDBI, and NDVI
+
+-Create threshold for those band calculations so they are true/false values
+
+-Plot all three band calculation thresholds on the same image
+
+-Add Legend with corresponding colors
+
+---
+
+*Hints:*
+
+What if my RGB plot is really dark?
+```{r class.source = "NULL"}
+# If your plotRGB plot is really dark this is because the image needs to be stretch. There are a few different stretch methods:
+
+# stretch = "lin"
+# This stretch method applies a linear stretch of values across the image
+
+# stretch = "hist"
+# This stretch method applies a histogram stretch of values across the image
+```
+
+What if my classification map does not look like the expected product?
+```{r class.source = "NULL"}
+# This may not be an issue and is just due to your threshold being different than mine for each index. 
+# These are the values I used
+# MNDWI > 0
+# NDBI > 0 
+# NDVI > 0.2
+```
+
+What if I can't get the false values to be transparent?
+```{r class.source = "NULL"}
+# After creating a threshold for the indexes you can plot them with transparent false values like so in the plot function: col = c("transparent","cadetblue1") This sets the false value color first and then the true value color.
+```
+
+How do I access specific layers in a raster with multiple layers?
+```{r, class.source = "NULL"}
+# You can access a specific layer through indexing, it's a little different for raster you use double brackets. EX:  image[[x]] with x being the layer number you want to grab. Be careful assuming that each index number directly correlated to the band number, they may be out of order!
+```
+
+---
+
+### Part 2 final product:
+
+```{r class.source = "NULL"}
+dem <- rast("../../DEMs/timp/output_USGS1m.tif")
+
+c1 <- crop(dem,c(442000,448000,4470000,4474000))
+c2 <- crop(dem,c(443000,449000,4467000,4471000))
+
+c1 <- aggregate(c1,10)
+c2 <- aggregate(c2,10)
+
+aspect <- terrain(mosaic(c1,c2),"aspect")
+slope <- terrain(mosaic(c1,c2),"slope")
+
+mos <- mosaic(c1,c2)
+
+leaflet()%>%
+  addProviderTiles("OpenStreetMap.HOT") %>%
+  addRasterImage(shade(slope*pi/180, aspect*pi/180, angle = 40, direction = 270), col = grey(0:100/100)) %>% 
+  addMiniMap()
+```
+
+
+---
+
+### Steps:
+
+-Download the DEMs
+
+-Mosaic the DEMs together
+
+-Create an aspect and slope map
+
+-Create a hillshade map with the aspect and slope map
+
+-Plot a leaflet map with a few different options (minimap, bounding box, etc...)
+
+---
+
+Copy this and figure out how to add the mosaic of the DEM. Add a few different elements like a minimap and try to add some fun stuff!
+
+The way that I've gone about discovering the possibilities of the leaflet package is by typing **leaflet::** and seeing all of the functions that it has!
+
+```{r eval = F, class.source = "fold-show"}
+leaflet()%>%
+  addProviderTiles("OpenStreetMap.HOT")
+```
+
+
+---
+
+*Hints:*
+
+How do I make a hillshade from a slope and aspect map?
+```{r class.source = "NULL"}
+# shade(slope*pi/180, aspect*pi/180, angle = 40, direction = 270)
+
+# col = grey(0:100/100)
+```
+
+
+
